@@ -24,6 +24,7 @@ export default defineConfig(async ({ mode }) => {
   }
   dotenv.config()
   return {
+    base: '/c-agent/',
     plugins: [react()],
     resolve: {
       alias: {

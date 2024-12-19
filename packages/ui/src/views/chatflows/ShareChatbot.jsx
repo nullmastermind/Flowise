@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction, SET_CHATFLOW } from '@/store/actions'
+import { closeSnackbar as closeSnackbarAction, enqueueSnackbar as enqueueSnackbarAction, SET_CHATFLOW } from '@/store/actions'
 import { SketchPicker } from 'react-color'
 import PropTypes from 'prop-types'
 
-import { Box, Typography, Button, Switch, OutlinedInput, Popover, Stack, IconButton } from '@mui/material'
+import { Box, Button, IconButton, OutlinedInput, Popover, Stack, Switch, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
 // Project import
@@ -12,7 +12,7 @@ import { StyledButton } from '@/ui-component/button/StyledButton'
 import { TooltipWithParser } from '@/ui-component/tooltip/TooltipWithParser'
 
 // Icons
-import { IconX, IconCopy, IconArrowUpRightCircle } from '@tabler/icons-react'
+import { IconArrowUpRightCircle, IconCopy, IconX } from '@tabler/icons-react'
 
 // API
 import chatflowsApi from '@/api/chatflows'
@@ -434,7 +434,7 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
           />
         </div>
       </Stack>
-      {textField(title, 'title', 'Title', 'string', 'CMCAI Assistant')}
+      {textField(title, 'title', 'Title', 'string', 'Agent Studio Assistant')}
       {textField(
         titleAvatarSrc,
         'titleAvatarSrc',
