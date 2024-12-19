@@ -29,7 +29,7 @@
     "dotenv": "^16.0.0",
     "elkjs": "^0.9.3",
     "c-agent-embedding": "latest",
-    "c-agent-embedding-react": "1.0.3",
+    "c-agent-embedding-react": "latest",
     "flowise-react-json-view": "*",
     "formik": "^2.2.6",
     "framer-motion": "^4.1.13",

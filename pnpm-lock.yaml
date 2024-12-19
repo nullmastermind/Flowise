@@ -729,12 +729,6 @@ importers:
       elkjs:
         specifier: ^0.9.3
         version: 0.9.3
-      flowise-embed:
-        specifier: latest
-        version: 2.0.9
-      flowise-embed-react:
-        specifier: latest
-        version: 1.0.6(@types/node@20.12.12)(flowise-embed@2.0.9)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.71.1)(terser@5.29.1)(typescript@5.5.2)
       flowise-react-json-view:
         specifier: '*'
         version: 1.21.7(@types/react@18.2.65)(encoding@0.1.13)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -9152,15 +9146,6 @@ packages:
 
   flatted@3.3.1:
     resolution: { integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw== }
-
-  flowise-embed-react@1.0.6:
-    resolution: { integrity: sha512-KNt3LoFYav8FTAe/QK6ktIeg8xZN13MBpRSIsw4HMj2CivAvwGnQR6Gl8hGp9FzkJwuMvWO5Z+GQYeM3duITAw== }
-    peerDependencies:
-      flowise-embed: '*'
-      react: 18.x
-
-  flowise-embed@2.0.9:
-    resolution: { integrity: sha512-h2Mb38GCwRz10EusJT7qHJDEuOq6h5TxNJr5yG/V/CLw3/kBdae5wBvL2IN3uwT7IA02nB182l8Bh8CpChbZxQ== }
 
   flowise-react-json-view@1.21.7:
     resolution: { integrity: sha512-oFjwtSLJkUWk6waLh8heCQ4o9b60FJRA2X8LefaZp5WaJvj/Rr2HILjk+ocf1JkfTcq8jc6t2jfIybg4leWsaQ== }
@@ -27644,46 +27629,6 @@ snapshots:
   flatbuffers@1.12.0: {}
 
   flatted@3.3.1: {}
-
-  flowise-embed-react@1.0.6(@types/node@20.12.12)(flowise-embed@2.0.9)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.71.1)(terser@5.29.1)(typescript@5.5.2):
-    dependencies:
-      '@ladle/react': 2.5.1(@types/node@20.12.12)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.71.1)(terser@5.29.1)(typescript@5.5.2)
-      flowise-embed: 2.0.9
-      react: 18.2.0
-    transitivePeerDependencies:
-      - '@types/node'
-      - less
-      - lightningcss
-      - react-dom
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - typescript
-
-  flowise-embed@2.0.9:
-    dependencies:
-      '@babel/core': 7.24.0
-      '@microsoft/fetch-event-source': 2.0.1
-      '@ts-stack/markdown': 1.5.0
-      axios: 1.7.8
-      cors: 2.8.5
-      cross-env: 7.0.3
-      device-detector-js: 3.0.3
-      dotenv: 16.4.5
-      express: 4.21.1
-      form-data: 4.0.1
-      lodash: 4.17.21
-      multer: 1.4.5-lts.1
-      node-fetch: 3.3.2
-      prettier: 3.2.5
-      solid-element: 1.7.0(solid-js@1.7.1)
-      solid-js: 1.7.1
-      zod: 3.22.4
-    transitivePeerDependencies:
-      - debug
-      - supports-color
 
   flowise-react-json-view@1.21.7(@types/react@18.2.65)(encoding@0.1.13)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:

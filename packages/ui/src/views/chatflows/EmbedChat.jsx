@@ -40,7 +40,7 @@ function a11yProps(index) {
 
 const embedPopupHtmlCode = (chatflowid) => {
   return `<script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/c-agent-embedding/dist/web.js"
+    import Chatbot from "https://cdn.jsdelivr.net/npm/c-agent-embedding@latest/dist/web.js"
     Chatbot.init({
         chatflowid: "${chatflowid}",
         apiHost: "${baseURL}",
@@ -64,7 +64,7 @@ const App = () => {
 const embedFullpageHtmlCode = (chatflowid) => {
   return `
 <script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/c-agent-embedding/dist/web.js"
+    import Chatbot from "https://cdn.jsdelivr.net/npm/c-agent-embedding@latest/dist/web.js"
     Chatbot.initFull({
         chatflowid: "${chatflowid}",
         apiHost: "${baseURL}",
@@ -194,7 +194,7 @@ const customStringify = (obj) => {
 
 const embedPopupHtmlCodeCustomization = (chatflowid) => {
   return `<script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/c-agent-embedding/dist/web.js"
+    import Chatbot from "https://cdn.jsdelivr.net/npm/c-agent-embedding@latest/dist/web.js"
     Chatbot.init({
         chatflowid: "${chatflowid}",
         apiHost: "${baseURL}",
@@ -247,7 +247,7 @@ const getFullPageThemeConfig = () => {
 const embedFullpageHtmlCodeCustomization = (chatflowid) => {
   return `<flowise-fullchatbot></flowise-fullchatbot>
 <script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/c-agent-embedding/dist/web.js"
+    import Chatbot from "https://cdn.jsdelivr.net/npm/c-agent-embedding@latest/dist/web.js"
     Chatbot.initFull({
         chatflowid: "${chatflowid}",
         apiHost: "${baseURL}",
