@@ -206,9 +206,7 @@ CREATE TABLE IF NOT EXISTS ${this.tableName} (
   ): Promise<IMessage[] | BaseMessage[]> {
     if (!overrideSessionId) return []
 
-    const repository = this.config.appDataSource.getRepository(this.config.databaseEntities['ChatMessage'])
-
-    let findOptions: any = {
+    const chatMessage = await this.config.appDataSource.getRepository(this.config.databaseEntities['ChatMessage']).find({
       where: {
         sessionId: overrideSessionId,
         chatflowid: this.config.chatflowid
@@ -216,25 +214,10 @@ CREATE TABLE IF NOT EXISTS ${this.tableName} (
       order: {
         createdDate: 'ASC'
       }
-    }
-
-    if (this.numberOfMessages && this.numberOfMessages > 0) {
-      // Get total count of messages
-      const totalCount = await repository.count(findOptions.where)
-
-      // Calculate offset to get the most recent N messages
-      findOptions.skip = Math.max(0, totalCount - this.numberOfMessages)
-      findOptions.take = this.numberOfMessages
-    }
-
-    const chatMessage = await repository.find(findOptions)
+    })
 
     if (prependMessages?.length) {
       chatMessage.unshift(...prependMessages)
-      // Re-trim if we have a message limit and prepended messages
-      if (this.numberOfMessages && this.numberOfMessages > 0) {
-        chatMessage.splice(this.numberOfMessages)
-      }
     }
 
     if (returnBaseMessages) {
