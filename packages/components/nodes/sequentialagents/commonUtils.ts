@@ -5,13 +5,24 @@ import { NodeVM } from '@flowiseai/nodevm'
 import { StructuredTool } from '@langchain/core/tools'
 import { ChatMistralAI } from '@langchain/mistralai'
 import { ChatAnthropic } from '@langchain/anthropic'
-import { Runnable, RunnableConfig, mergeConfigs } from '@langchain/core/runnables'
+import { mergeConfigs, Runnable, RunnableConfig } from '@langchain/core/runnables'
 import { AIMessage, BaseMessage, HumanMessage, MessageContentImageUrl, ToolMessage } from '@langchain/core/messages'
 import { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { addImagesToMessages, llmSupportsVision } from '../../src/multiModalUtils'
-import { ICommonObject, IDatabaseEntity, INodeData, ISeqAgentsState, IVisionChatModal } from '../../src/Interface'
-import { availableDependencies, defaultAllowBuiltInDep, getVars, prepareSandboxVars } from '../../src/utils'
-import { ChatPromptTemplate, BaseMessagePromptTemplateLike } from '@langchain/core/prompts'
+import {
+  availableDependencies,
+  defaultAllowBuiltInDep,
+  getVars,
+  ICommonObject,
+  IDatabaseEntity,
+  INodeData,
+  ISeqAgentsState,
+  IVisionChatModal,
+  prepareSandboxVars
+} from '../../src'
+import { BaseMessagePromptTemplateLike, ChatPromptTemplate } from '@langchain/core/prompts'
+import { writeFile } from 'fs/promises'
+import moment from 'moment'
 
 export const checkCondition = (input: string | number | undefined, condition: string, value: string | number = ''): boolean => {
   if (!input && condition === 'Is Empty') return true
@@ -209,7 +220,7 @@ export const convertStructuredSchemaToZod = (schema: string | object): ICommonOb
 }
 
 export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) => {
-  const messages: BaseMessage[] = []
+  let messages: BaseMessage[] = []
   for (const message of state.messages as unknown as BaseMessage[]) {
     // Sometimes Anthropic can return a message with content types of array, ignore that EXECEPT when tool calls are present
     if ((message as any).tool_calls?.length && message.content !== '') {
@@ -266,6 +277,60 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
       }
     }
   }
+
+  let lastMessage = ''
+  const chatHistory: any[] = []
+
+  if (messages.length > 1) {
+    JSON.parse(JSON.stringify(messages)).forEach((message: any) => {
+      if (message.kwargs?.content) {
+        if (message.id?.includes('HumanMessage')) {
+          lastMessage = message.kwargs.content
+        }
+        chatHistory.push(message.kwargs.content)
+      }
+    })
+
+    if (chatHistory.length && lastMessage) {
+      messages = [
+        new HumanMessage({
+          content: `<chat_history>
+${JSON.stringify(chatHistory, null, 2)}
+</chat_history>
+
+${lastMessage}`
+        })
+      ]
+      //       messages = [
+      //         {
+      //           lc: 1,
+      //           type: 'constructor',
+      //           id: ['langchain_core', 'messages', 'HumanMessage'],
+      //           kwargs: {
+      //             content: `<chat_history>
+      // ${JSON.stringify(chatHistory, null, 2)}
+      // </chat_history>
+      //
+      // ${lastMessage}`,
+      //             additional_kwargs: {},
+      //             response_metadata: {}
+      //           }
+      //         }
+      //       ] as any[]
+    }
+  }
+
+  void writeFile(
+    `logs/messages-${moment().format('YYYY-MM-DD-HH-mm-ss')}.json`,
+    JSON.stringify(
+      {
+        messages,
+        params: { chatHistory, lastMessage }
+      },
+      null,
+      2
+    )
+  )
 
   return messages
 }
