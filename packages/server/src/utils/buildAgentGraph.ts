@@ -45,7 +45,7 @@ import { replaceInputsWithConfig, resolveVariables } from '.'
 import { InternalFlowiseError } from '../errors/internalFlowiseError'
 import { getErrorMessage } from '../errors/utils'
 import logger from './logger'
-import axios from 'axios'
+
 /**
  * Build Agent Graph
  * @param {IChatFlow} chatflow
@@ -246,37 +246,9 @@ export const buildAgentGraph = async (
               const state = omit(output[agentName], ['messages'])
 
               if (usedTools && usedTools.length) {
-                const cleanedTools = usedTools.filter((tool: IUsedTool) => tool);            
-                const jsonString = JSON.stringify(sourceDocuments);
-                const s3Urls = jsonString.match(/s3:\/\/cts-llm-docs-bucket\/[^\s"]+\.pdf/g);
-              
-                if (s3Urls && s3Urls.length > 0) {
-                  const prefixList = s3Urls.map(url => url.replace('s3://cts-llm-docs-bucket/', ''));
-                  console.log('Sending prefix_list to API:', prefixList);
-              
-                  try {
-                    const response = await axios.post('http://3.231.34.3:8001/knowledge_base/get_pdf_content', {
-                      prefix_list: prefixList
-                    }, {
-                      headers: {
-                        'Content-Type': 'application/json'
-                      }
-                    });
-              
-                    const pdfContent = response.data; 
-                    console.log('API Response:', response.data); 
-              
-                    const customizedTools = cleanedTools.map((tool: IUsedTool) => {
-                      const newTool = { ...tool, toolOutput: pdfContent };
-                      return newTool;
-                    });
-              
-                    if (customizedTools.length) totalUsedTools.push(...customizedTools);
-                  } catch (error) {
-                    console.error('Error calling the API:', error);
-                  }
-                }
-              }  
+                const cleanedTools = usedTools.filter((tool: IUsedTool) => tool)
+                if (cleanedTools.length) totalUsedTools.push(...cleanedTools)
+              }
 
               if (sourceDocuments && sourceDocuments.length) {
                 const cleanedDocs = sourceDocuments.filter((documents: IDocument) => documents)
