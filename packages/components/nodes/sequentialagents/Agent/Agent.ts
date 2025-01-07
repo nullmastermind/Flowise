@@ -1,40 +1,41 @@
-import { flatten, uniq } from 'lodash'
-import { DataSource } from 'typeorm'
-import { RunnableSequence, RunnablePassthrough, RunnableConfig } from '@langchain/core/runnables'
-import { ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate, BaseMessagePromptTemplateLike } from '@langchain/core/prompts'
 import { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { AIMessage, AIMessageChunk, BaseMessage, HumanMessage, ToolMessage } from '@langchain/core/messages'
+import { StringOutputParser } from '@langchain/core/output_parsers'
+import { BaseMessagePromptTemplateLike, ChatPromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts'
+import { RunnableConfig, RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables'
+import { StructuredTool } from '@langchain/core/tools'
+import { END, StateGraph } from '@langchain/langgraph'
 import { formatToOpenAIToolMessages } from 'langchain/agents/format_scratchpad/openai_tools'
 import { type ToolsAgentStep } from 'langchain/agents/openai/output_parser'
-import { StringOutputParser } from '@langchain/core/output_parsers'
+import { flatten, uniq } from 'lodash'
+import { DataSource } from 'typeorm'
 import {
+  ICommonObject,
+  IDatabaseEntity,
+  IDocument,
   INode,
   INodeData,
-  INodeParams,
-  ISeqAgentsState,
-  ICommonObject,
-  MessageContentImageUrl,
   INodeOutputsValue,
+  INodeParams,
   ISeqAgentNode,
-  IDatabaseEntity,
+  ISeqAgentsState,
+  IStateWithMessages,
   IUsedTool,
-  IDocument,
-  IStateWithMessages
+  MessageContentImageUrl,
 } from '../../../src/Interface'
-import { ToolCallingAgentOutputParser, AgentExecutor, SOURCE_DOCUMENTS_PREFIX, ARTIFACTS_PREFIX } from '../../../src/agents'
+import { ARTIFACTS_PREFIX, AgentExecutor, SOURCE_DOCUMENTS_PREFIX, ToolCallingAgentOutputParser } from '../../../src/agents'
 import { getInputVariables, getVars, handleEscapeCharacters, prepareSandboxVars, removeInvalidImageMarkdown } from '../../../src/utils'
 import {
+  MessagesState,
+  RunnableCallable,
+  checkMessageHistory,
   customGet,
   getVM,
   processImageMessage,
-  transformObjectPropertyToFunction,
   restructureMessages,
-  MessagesState,
-  RunnableCallable,
-  checkMessageHistory
+  summaryMessageHistory,
+  transformObjectPropertyToFunction
 } from '../commonUtils'
-import { END, StateGraph } from '@langchain/langgraph'
-import { StructuredTool } from '@langchain/core/tools'
 
 const defaultApprovalPrompt = `You are about to execute tool: {tools}. Ask if user want to proceed`
 const examplePrompt = 'You are a research assistant who can search for up-to-date info using search engine.'
@@ -265,6 +266,13 @@ class Agent_SeqAgents implements INode {
         optional: true
       },
       {
+        label: 'Summary History',
+        name: 'summary',
+        description: 'Summary message history',
+        type: 'boolean',
+        optional: true
+      },
+      {
         label: 'Format Prompt Values',
         name: 'promptValues',
         description: 'Assign values to the prompt variables. You can also use $flow.state.<variable-name> to get the state value',
@@ -443,6 +451,8 @@ class Agent_SeqAgents implements INode {
     }
 
     const interrupt = nodeData.inputs?.interrupt as boolean
+    
+    const summary = nodeData.inputs?.summary as boolean
 
     const toolName = `tool_${nodeData.id}`
     const toolNode = new ToolNode(tools, nodeData, input, options, toolName, [], { sequentialNodeName: toolName })
@@ -463,6 +473,7 @@ class Agent_SeqAgents implements INode {
           state,
           llm,
           interrupt,
+          summary,
           agent: await createAgent(
             nodeData,
             options,
@@ -470,6 +481,7 @@ class Agent_SeqAgents implements INode {
             state,
             llm,
             interrupt,
+            summary,
             [...tools],
             agentSystemPrompt,
             agentHumanPrompt,
@@ -561,6 +573,7 @@ async function createAgent(
   state: ISeqAgentsState,
   llm: BaseChatModel,
   interrupt: boolean,
+  summary: boolean,
   tools: any[],
   systemPrompt: string,
   humanPrompt: string,
@@ -703,6 +716,7 @@ async function agentNode(
     state,
     llm,
     interrupt,
+    summary,
     agent,
     name,
     abortControllerSignal,
@@ -713,6 +727,7 @@ async function agentNode(
     state: ISeqAgentsState
     llm: BaseChatModel
     interrupt: boolean
+    summary: boolean
     agent: AgentExecutor | RunnableSequence
     name: string
     abortControllerSignal: AbortController
@@ -763,7 +778,14 @@ async function agentNode(
         }
       }
     }
-
+    if(summary){
+      try {
+        const processedMessages = await summaryMessageHistory(state);
+        console.log('Processed Messages:', processedMessages);
+      } catch (error) {
+        console.error('Error handling agent messages:', error);
+      }
+    }
     const additional_kwargs: ICommonObject = { nodeId: nodeData.id }
 
     if (result.usedTools) {

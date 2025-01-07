@@ -1,17 +1,21 @@
-import { get } from 'lodash'
-import { z } from 'zod'
-import { DataSource } from 'typeorm'
 import { NodeVM } from '@flowiseai/nodevm'
+import { ChatAnthropic } from '@langchain/anthropic'
+import { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import { AIMessage, BaseMessage, HumanMessage, MessageContentImageUrl, ToolMessage } from '@langchain/core/messages'
+import { BaseMessagePromptTemplateLike, ChatPromptTemplate } from '@langchain/core/prompts'
+import { Runnable, RunnableConfig, mergeConfigs } from '@langchain/core/runnables'
 import { StructuredTool } from '@langchain/core/tools'
 import { ChatMistralAI } from '@langchain/mistralai'
-import { ChatAnthropic } from '@langchain/anthropic'
-import { Runnable, RunnableConfig, mergeConfigs } from '@langchain/core/runnables'
-import { AIMessage, BaseMessage, HumanMessage, MessageContentImageUrl, ToolMessage } from '@langchain/core/messages'
-import { BaseChatModel } from '@langchain/core/language_models/chat_models'
-import { addImagesToMessages, llmSupportsVision } from '../../src/multiModalUtils'
+import { OpenAI } from "@langchain/openai"
+import { config } from 'dotenv'
+import { ConversationSummaryBufferMemory } from "langchain/memory"
+import { get } from 'lodash'
+import { resolve } from 'path'
+import { DataSource } from 'typeorm'
+import { z } from 'zod'
 import { ICommonObject, IDatabaseEntity, INodeData, ISeqAgentsState, IVisionChatModal } from '../../src/Interface'
+import { addImagesToMessages, llmSupportsVision } from '../../src/multiModalUtils'
 import { availableDependencies, defaultAllowBuiltInDep, getVars, prepareSandboxVars } from '../../src/utils'
-import { ChatPromptTemplate, BaseMessagePromptTemplateLike } from '@langchain/core/prompts'
 
 export const checkCondition = (input: string | number | undefined, condition: string, value: string | number = ''): boolean => {
   if (!input && condition === 'Is Empty') return true
@@ -269,6 +273,79 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
 
   return messages
 }
+
+export const summaryMessageHistory = async (state: ISeqAgentsState) => {
+  const messages: BaseMessage[] = [];
+
+  // Filter and normalize messages
+  for (const message of state.messages as unknown as BaseMessage[]) {
+    const { tool_calls, content } = message as any;
+
+    if (tool_calls?.length && content !== '') {
+      message.content = JSON.stringify(content);
+    }
+
+    if (typeof message.content === 'string') {
+      messages.push(message);
+    }
+  }
+
+  if (messages.length <= 1) return messages;
+
+  const chatHistory: string[] = [];
+  let lastMessage = '';
+
+  config({ path: resolve(__dirname, '../../../server/.env') });
+
+  const memory = new ConversationSummaryBufferMemory({
+    llm: new OpenAI({
+      model: "claude-3.5-sonnet",
+      temperature: 0,
+      apiKey: process.env.SUMMARY_API_KEY,
+      configuration: {
+        baseURL: "https://stock.cmcts.ai/litellm/v1",
+      },
+    }),
+    maxTokenLimit: 10000,
+    returnMessages: true,
+  });
+
+  for (const message of messages) {
+    if (!message) continue;
+
+    const parsedMessage = JSON.parse(JSON.stringify(message));
+    const content = parsedMessage.kwargs?.content || '';
+
+    chatHistory.push(content);
+
+    if (parsedMessage.id?.includes("HumanMessage")) {
+      lastMessage = content;
+    }
+  }
+
+  if (!chatHistory.length || !lastMessage) return messages;
+
+  try {
+    const chatHistoryString = JSON.stringify(chatHistory, null, 2);
+
+    await memory.saveContext(
+      { input: lastMessage },
+      { output: chatHistoryString }
+    );
+
+    const history = await memory.loadMemoryVariables({});
+
+    return [
+      new HumanMessage({
+        content: `<chat_history>\n${history}\n</chat_history>\n\n${lastMessage}`,
+      }),
+    ];
+  } catch (error) {
+    console.error('Error in summaryMessageHistory:', error);
+    return messages;
+  }
+};
+
 
 export class ExtractTool extends StructuredTool {
   name = 'extract'
