@@ -97,9 +97,10 @@ const getAllCredentials = async (req: any) => {
   }
 }
 
-const getCredentialById = async (req: any, credentialId: string): Promise<any> => {
+const getCredentialById = async (req: any): Promise<any> => {
   try {
     const { body, user } = req
+    const credentialId = req.params.id
     if (!user.id) {
       throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
     }

@@ -74,9 +74,11 @@ const getAllTools = async (req?: any): Promise<Tool[]> => {
   }
 }
 
-const getToolById = async (req: any, toolId: string): Promise<any> => {
+const getToolById = async (req: any): Promise<any> => {
   try {
     const { body, user } = req
+    const toolId = req.params.id
+
     if (!user.id) {
       throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
     }

@@ -68,9 +68,11 @@ const getAllVariables = async (req?: any) => {
   }
 }
 
-const getVariableById = async (req: any, variableId: string) => {
+const getVariableById = async (req: any) => {
   try {
     const { body, user } = req
+    const variableId = req.params.id
+
     if (!user.id) {
       throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
     }
