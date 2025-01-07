@@ -97,11 +97,16 @@ const getAllCredentials = async (req: any) => {
   }
 }
 
-const getCredentialById = async (credentialId: string): Promise<any> => {
+const getCredentialById = async (req: any, credentialId: string): Promise<any> => {
   try {
+    const { body, user } = req
+    if (!user.id) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+    }
     const appServer = getRunningExpressApp()
     const credential = await appServer.AppDataSource.getRepository(Credential).findOneBy({
-      id: credentialId
+      id: credentialId,
+      userId: user.id
     })
     if (!credential) {
       throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)

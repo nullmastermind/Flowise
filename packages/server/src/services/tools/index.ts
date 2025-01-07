@@ -74,11 +74,16 @@ const getAllTools = async (req?: any): Promise<Tool[]> => {
   }
 }
 
-const getToolById = async (toolId: string): Promise<any> => {
+const getToolById = async (req: any, toolId: string): Promise<any> => {
   try {
+    const { body, user } = req
+    if (!user.id) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+    }
     const appServer = getRunningExpressApp()
     const dbResponse = await appServer.AppDataSource.getRepository(Tool).findOneBy({
-      id: toolId
+      id: toolId,
+      userId: user.id
     })
     if (!dbResponse) {
       throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Tool ${toolId} not found`)

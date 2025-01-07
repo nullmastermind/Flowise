@@ -62,6 +62,8 @@ const edgeTypes = { buttonedge: ButtonEdge }
 const Canvas = () => {
   const theme = useTheme()
   const customization = useSelector((state) => state.customization)
+  const user = useSelector((state) => state.user)
+
   const [isDark] = useState(customization.isDarkMode)
   const navigate = useNavigate()
 
@@ -423,19 +425,26 @@ const Canvas = () => {
   // ==============================|| useEffect ||============================== //
 
   // Get specific chatflow successful
-  useEffect(() => {
-    if (getSpecificChatflowApi.data) {
-      const chatflow = getSpecificChatflowApi.data
-      const initialFlow = chatflow.flowData ? JSON.parse(chatflow.flowData) : []
-      setNodes(initialFlow.nodes || [])
-      setEdges(initialFlow.edges || [])
-      dispatch({ type: SET_CHATFLOW, chatflow })
-    } else if (getSpecificChatflowApi.error) {
-      errorFailed(`Failed to retrieve ${canvasTitle}: ${getSpecificChatflowApi.error.response.data.message}`)
-    }
-
+  useEffect(
+    () => {
+      if (getSpecificChatflowApi.data) {
+        const chatflow = getSpecificChatflowApi.data
+        if (user.id === chatflow.userId || user.role === 'Admin') {
+          const initialFlow = chatflow.flowData ? JSON.parse(chatflow.flowData) : []
+          setNodes(initialFlow.nodes || [])
+          setEdges(initialFlow.edges || [])
+          dispatch({ type: SET_CHATFLOW, chatflow })
+        } else {
+          navigate(isAgentCanvas ? '/agentflows' : '/')
+        }
+      } else if (getSpecificChatflowApi.error) {
+        errorFailed(`Failed to retrieve ${canvasTitle}: ${getSpecificChatflowApi.error.response.data.message}`)
+        navigate(isAgentCanvas ? '/agentflows' : '/')
+      }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getSpecificChatflowApi.data, getSpecificChatflowApi.error])
+    [getSpecificChatflowApi.data, getSpecificChatflowApi.error]
+  )
 
   // Create new chatflow successful
   useEffect(() => {

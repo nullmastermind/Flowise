@@ -68,11 +68,16 @@ const getAllVariables = async (req?: any) => {
   }
 }
 
-const getVariableById = async (variableId: string) => {
+const getVariableById = async (req: any, variableId: string) => {
   try {
+    const { body, user } = req
+    if (!user.id) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+    }
     const appServer = getRunningExpressApp()
     const dbResponse = await appServer.AppDataSource.getRepository(Variable).findOneBy({
-      id: variableId
+      id: variableId,
+      userId: user.id
     })
     return dbResponse
   } catch (error) {
