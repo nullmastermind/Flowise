@@ -24,6 +24,7 @@ interface DynamicStructuredToolInput<T extends z.ZodObject<any, any, any, any> =
   extends BaseDynamicToolInput {
   func?: (input: z.infer<T>, runManager?: CallbackManagerForToolRun, flowConfig?: IFlowConfig) => Promise<string>
   schema: T
+  score?: Number
 }
 
 class DynamicStructuredTool<T extends z.ZodObject<any, any, any, any> = z.ZodObject<any, any, any, any>> extends StructuredTool<
@@ -44,6 +45,8 @@ class DynamicStructuredTool<T extends z.ZodObject<any, any, any, any> = z.ZodObj
 
   private flowObj: any
 
+  score?: Number
+
   constructor(fields: DynamicStructuredToolInput<T>) {
     super(fields)
     this.name = fields.name
@@ -51,6 +54,7 @@ class DynamicStructuredTool<T extends z.ZodObject<any, any, any, any> = z.ZodObj
     this.func = fields.func
     this.returnDirect = fields.returnDirect ?? this.returnDirect
     this.schema = fields.schema
+    this.score = fields.score
   }
 
   async call(arg: any, configArg?: RunnableConfig | Callbacks, tags?: string[], flowConfig?: IFlowConfig): Promise<string> {
@@ -129,6 +133,7 @@ class Retriever_Tools implements INode {
   baseClasses: string[]
   credential: INodeParams
   inputs: INodeParams[]
+  score: number
 
   constructor() {
     this.label = 'Retriever Tool'
@@ -192,6 +197,13 @@ class Retriever_Tools implements INode {
           label: 'What can you filter?',
           value: howToUse
         }
+      },
+      {
+        label: 'Score',
+        name: 'score',
+        type: 'number',
+        optional: true,
+        default: 0
       }
     ]
   }
@@ -202,10 +214,11 @@ class Retriever_Tools implements INode {
     const retriever = nodeData.inputs?.retriever as BaseRetriever
     const returnSourceDocuments = nodeData.inputs?.returnSourceDocuments as boolean
     const retrieverToolMetadataFilter = nodeData.inputs?.retrieverToolMetadataFilter
-
+    const score = +nodeData.inputs?.score
     const input = {
       name,
-      description
+      description,
+      score
     }
 
     const flow = { chatflowId: options.chatflowid }
@@ -290,32 +303,38 @@ class Retriever_Tools implements INode {
         }
       }
 
+      // Filter documents based on score threshold
+      const filteredDocs = docs.filter((doc) => {
+        // If score is not a number, include the document
+        if (isNaN(+doc.metadata?.score)) return true
+        // If score threshold is set (>= 0), only include docs that meet or exceed it
+        if (score >= 0) return doc.metadata.score >= score
+        // Include all docs if no valid score threshold
+        return true
+      })
+
       const content = nodeData.inputs?.returnRawDocument
         ? JSON.stringify(
-            docs.map((doc) => ({
+            filteredDocs.map((doc) => ({
               pageContent: doc.pageContent,
               metadata: {
-                // source: doc.metadata?.source?.split('/')?.pop(),
                 score: doc.metadata.score,
                 sub_cate_1: doc.metadata?.sub_cate_1
-                // sub_cate_2: doc.metadata?.sub_cate_2,
-                // category: doc.metadata?.category,
-                // sub_cate_3: doc.metadata?.sub_cate_3,
-                // sub_cate_4: doc.metadata?.sub_cate_4
               }
             })),
             null,
             2
           )
-        : docs.map((doc) => doc.pageContent).join('\n\n')
-      const sourceDocuments = JSON.stringify(docs)
+        : filteredDocs.map((doc) => doc.pageContent).join('\n\n')
+
+      const sourceDocuments = JSON.stringify(filteredDocs)
+
       return returnSourceDocuments ? content + SOURCE_DOCUMENTS_PREFIX + sourceDocuments : content
     }
 
     const schema = z.object({
       input: z.string().describe('input to look up in retriever')
     }) as any
-
     const tool = new DynamicStructuredTool({ ...input, func, schema })
     tool.setFlowObject(flow)
     return tool
