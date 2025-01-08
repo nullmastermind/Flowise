@@ -44,6 +44,7 @@ import verifyRouter from './verify'
 import versionRouter from './versions'
 import user from './user'
 import chatwoot from './chatwoot'
+import sendEmail from './send-email'
 
 const router: Router = express.Router()
 
@@ -92,5 +93,6 @@ router.use('/version', versionRouter)
 router.use('/upsert-history', upsertHistoryRouter)
 router.use('/user', user)
 router.use('/chatwoot', chatwoot)
+router.use('/send-email', sendEmail)
 
 export default router
