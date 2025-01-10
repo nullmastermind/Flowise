@@ -308,16 +308,14 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
 export const summaryMessageHistory = async (state: ISeqAgentsState) => {
   const messages: BaseMessage[] = [];
 
-  // Filter and normalize messages
   for (const message of state.messages as unknown as BaseMessage[]) {
-    const { tool_calls, content } = message as any;
-
-    if (tool_calls?.length && content !== '') {
-      message.content = JSON.stringify(content);
+    // Sometimes Anthropic can return a message with content types of array, ignore that EXECEPT when tool calls are present
+    if ((message as any).tool_calls?.length && message.content !== '') {
+      message.content = JSON.stringify(message.content)
     }
 
     if (typeof message.content === 'string') {
-      messages.push(message);
+      messages.push(message)
     }
   }
 
@@ -329,7 +327,7 @@ export const summaryMessageHistory = async (state: ISeqAgentsState) => {
   config({ path: resolve(__dirname, '../../../server/.env') });
 
   const memory = new ConversationSummaryBufferMemory({
-    llm: new OpenAI({
+    llm: new ChatOpenAI({
       model: "claude-3.5-sonnet",
       temperature: 0,
       apiKey: process.env.SUMMARY_API_KEY,
@@ -337,7 +335,7 @@ export const summaryMessageHistory = async (state: ISeqAgentsState) => {
         baseURL: "https://stock.cmcts.ai/litellm/v1",
       },
     }),
-    maxTokenLimit: 10000,
+    maxTokenLimit: 100,
     returnMessages: true,
   });
 
@@ -345,20 +343,16 @@ export const summaryMessageHistory = async (state: ISeqAgentsState) => {
     if (!message) continue;
 
     const parsedMessage = JSON.parse(JSON.stringify(message));
-    const content = parsedMessage.kwargs?.content || '';
-
-    chatHistory.push(content);
-
     if (parsedMessage.id?.includes("HumanMessage")) {
+      const content = parsedMessage.kwargs?.content || '';
+      chatHistory.push(content);
       lastMessage = content;
     }
   }
 
   if (!chatHistory.length || !lastMessage) return messages;
-
   try {
     const chatHistoryString = JSON.stringify(chatHistory, null, 2);
-
     await memory.saveContext(
       { input: lastMessage },
       { output: chatHistoryString }
@@ -366,9 +360,12 @@ export const summaryMessageHistory = async (state: ISeqAgentsState) => {
 
     const history = await memory.loadMemoryVariables({});
 
+    const contentList = history.history.map((message: any) => message.content);
+
+    
     return [
       new HumanMessage({
-        content: `<chat_history>\n${history}\n</chat_history>\n\n${lastMessage}`,
+        content: `<chat_history>\n${contentList}\n</chat_history>\n\n${lastMessage}`,
       }),
     ];
   } catch (error) {
@@ -376,7 +373,6 @@ export const summaryMessageHistory = async (state: ISeqAgentsState) => {
     return messages;
   }
 };
-
 
 export class ExtractTool extends StructuredTool {
   name = 'extract'
