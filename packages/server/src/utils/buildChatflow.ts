@@ -1,63 +1,64 @@
 import { Request } from 'express'
-import * as path from 'path'
 import {
-  IFileUpload,
-  convertSpeechToText,
-  ICommonObject,
-  addSingleFileToStorage,
   addArrayFilesToStorage,
-  mapMimeTypeToInputField,
-  mapExtToInputField,
+  addSingleFileToStorage,
+  convertSpeechToText,
   generateFollowUpPrompts,
-  IServerSideEventStreamer
+  IAction,
+  ICommonObject,
+  IFileUpload,
+  IServerSideEventStreamer,
+  mapExtToInputField,
+  mapMimeTypeToInputField
 } from 'flowise-components'
-import { StatusCodes } from 'http-status-codes'
-import {
-  IncomingInput,
-  IMessage,
-  INodeData,
-  IReactFlowObject,
-  IReactFlowNode,
-  IDepthQueue,
-  ChatType,
-  IChatMessage,
-  IChatFlow,
-  IReactFlowEdge
-} from '../Interface'
-import { InternalFlowiseError } from '../errors/internalFlowiseError'
-import { ChatFlow } from '../database/entities/ChatFlow'
-import { getRunningExpressApp } from '../utils/getRunningExpressApp'
-import {
-  isFlowValidForStream,
-  buildFlow,
-  getTelemetryFlowObj,
-  getAppVersion,
-  resolveVariables,
-  getSessionChatHistory,
-  findMemoryNode,
-  replaceInputsWithConfig,
-  getStartingNodes,
-  isStartNodeDependOnInput,
-  getMemorySessionId,
-  isSameOverrideConfig,
-  getEndingNodes,
-  constructGraphs,
-  isSameChatId,
-  getAPIOverrideConfig
-} from '../utils'
-import { databaseEntities } from '.'
-import { v4 as uuidv4 } from 'uuid'
-import { omit } from 'lodash'
 import * as fs from 'fs'
-import logger from './logger'
-import { utilAddChatMessage } from './addChatMesage'
-import { buildAgentGraph } from './buildAgentGraph'
-import { getErrorMessage } from '../errors/utils'
+import { StatusCodes } from 'http-status-codes'
+import { omit } from 'lodash'
+import * as path from 'path'
+import { v4 as uuidv4 } from 'uuid'
+import { databaseEntities } from '.'
+import {
+  ChatType,
+  IChatFlow,
+  IChatMessage,
+  IChatRecord,
+  IDepthQueue,
+  IMessage,
+  IncomingInput,
+  INodeData,
+  IReactFlowEdge,
+  IReactFlowNode,
+  IReactFlowObject
+} from '../Interface'
+import { FLOWISE_COUNTER_STATUS, FLOWISE_METRIC_COUNTERS } from '../Interface.Metrics'
+import { ChatFlow } from '../database/entities/ChatFlow'
 import { ChatMessage } from '../database/entities/ChatMessage'
-import { IAction } from 'flowise-components'
-import { FLOWISE_METRIC_COUNTERS, FLOWISE_COUNTER_STATUS } from '../Interface.Metrics'
+import { InternalFlowiseError } from '../errors/internalFlowiseError'
+import { getErrorMessage } from '../errors/utils'
+import {
+  buildFlow,
+  constructGraphs,
+  findMemoryNode,
+  getAPIOverrideConfig,
+  getAppVersion,
+  getEndingNodes,
+  getMemorySessionId,
+  getSessionChatHistory,
+  getStartingNodes,
+  getTelemetryFlowObj,
+  isFlowValidForStream,
+  isSameChatId,
+  isSameOverrideConfig,
+  isStartNodeDependOnInput,
+  replaceInputsWithConfig,
+  resolveVariables
+} from '../utils'
+import { getRunningExpressApp } from '../utils/getRunningExpressApp'
+import { utilAddChatMessage } from './addChatMesage'
+import { addChatRecord } from './addChatRecord'
+import { buildAgentGraph } from './buildAgentGraph'
+import logger from './logger'
 import { validateChatflowAPIKey } from './validateKey'
-
 /**
  * Build Chatflow
  * @param {Request} req
@@ -79,6 +80,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
     if (!chatflow) {
       throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
     }
+
     const chatId = incomingInput.chatId ?? incomingInput.overrideConfig?.sessionId ?? uuidv4()
     const userMessageDateTime = new Date()
     if (!isInternal) {
@@ -87,6 +89,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
         throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
       }
     }
+
     let fileUploads: IFileUpload[] = []
     let uploadedFilesContent = ''
     if (incomingInput.uploads) {
@@ -213,6 +216,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
     const edges = parsedFlowData.edges
 
     const apiMessageId = uuidv4()
+
     /*** Get session ID ***/
     const memoryNode = findMemoryNode(nodes, edges)
     const memoryType = memoryNode?.data?.label
@@ -463,6 +467,18 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
       leadEmail: incomingInput.leadEmail
     }
     await utilAddChatMessage(userMessage)
+    const messageHistory: { message: string }[] = []
+
+    messageHistory.push({
+      message: incomingInput.question
+    })
+    const userMessageHistory: Omit<IChatRecord, 'id'> = {
+      chat_history: messageHistory,
+      chatflowid,
+      device_id: incomingInput.stored?.deviceId || undefined
+    }
+
+    await addChatRecord(userMessageHistory)
 
     let resultText = ''
     if (result.text) resultText = result.text
@@ -497,6 +513,18 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
     }
 
     const chatMessage = await utilAddChatMessage(apiMessage)
+
+    messageHistory.push({
+      message: resultText
+    })
+
+    const apiMessageHistory: Omit<IChatRecord, 'id'> = {
+      chat_history: messageHistory,
+      chatflowid,
+      device_id: incomingInput.stored?.deviceId || undefined
+    }
+
+    await addChatRecord(apiMessageHistory)
 
     logger.debug(`[server]: Finished running ${nodeToExecuteData.label} (${nodeToExecuteData.id})`)
     await appServer.telemetry.sendTelemetry('prediction_sent', {
@@ -586,6 +614,18 @@ const utilBuildAgentResponse = async (
       }
       await utilAddChatMessage(userMessage)
 
+      const messageHistory: { message: string }[] = []
+
+      messageHistory.push({
+        message: incomingInput.question
+      })
+      const userMessageHistory: Omit<IChatRecord, 'id'> = {
+        chat_history: messageHistory,
+        chatflowid: agentflow.id,
+        device_id: incomingInput.stored?.deviceId || undefined
+      }
+
+      await addChatRecord(userMessageHistory)
       const apiMessage: Omit<IChatMessage, 'createdDate'> = {
         id: apiMessageId,
         role: 'apiMessage',
@@ -614,6 +654,26 @@ const utilBuildAgentResponse = async (
         }
       }
       const chatMessage = await utilAddChatMessage(apiMessage)
+      const agentMessage = JSON.parse(JSON.stringify(agentReasoning))
+
+      agentMessage.forEach((agent: any) => {
+        const agentName = agent.agentName
+        const message = agent.messages ? agent.messages : ''
+
+        const combinedMessage = `${agentName}: ${message}`
+
+        messageHistory.push({ message: combinedMessage })
+      })
+
+      messageHistory.push({ message: finalResult })
+
+      const apiMessageHistory: Omit<IChatRecord, 'id'> = {
+        chat_history: messageHistory,
+        chatflowid: agentflow.id,
+        device_id: incomingInput.stored?.deviceId || undefined
+      }
+
+      await addChatRecord(apiMessageHistory)
 
       await appServer.telemetry.sendTelemetry('agentflow_prediction_sent', {
         version: await getAppVersion(),

@@ -1,17 +1,18 @@
+import { ApiKey } from './ApiKey'
+import { Assistant } from './Assistant'
 import { ChatFlow } from './ChatFlow'
 import { ChatMessage } from './ChatMessage'
 import { ChatMessageFeedback } from './ChatMessageFeedback'
+import { ChatRecord } from './ChatRecord'
 import { Credential } from './Credential'
-import { Tool } from './Tool'
-import { Assistant } from './Assistant'
-import { Variable } from './Variable'
+import { CustomTemplate } from './CustomTemplate'
 import { DocumentStore } from './DocumentStore'
 import { DocumentStoreFileChunk } from './DocumentStoreFileChunk'
 import { Lead } from './Lead'
+import { Tool } from './Tool'
 import { UpsertHistory } from './UpsertHistory'
-import { ApiKey } from './ApiKey'
-import { CustomTemplate } from './CustomTemplate'
 import { User } from './User'
+import { Variable } from './Variable'
 
 export const entities = {
   ChatFlow,
@@ -19,6 +20,7 @@ export const entities = {
   ChatMessageFeedback,
   Credential,
   Tool,
+  ChatRecord,
   Assistant,
   Variable,
   DocumentStore,
