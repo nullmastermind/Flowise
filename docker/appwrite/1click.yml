@@ -42,7 +42,7 @@ caproverOneClickApp:
       description: Check out their Docker page for the valid tags https://hub.docker.com/r/appwrite/assistant
     - id: $$cap_assistant_openai_key
       label: OpenAI API Key
-      defaultValue: ''
+      defaultValue: 'sk-TEST'
       description: Optional - Your OpenAI API key for the Appwrite Assistant feature
     - id: $$cap_db_root_pass
       label: Database Root Password
@@ -550,7 +550,7 @@ services:
     caproverExtra:
       notExposeAsWebApp: true
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -569,12 +569,18 @@ services:
     caproverExtra:
       notExposeAsWebApp: true
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
 
   $$cap_appname-worker-certificates:
+    image: appwrite/appwrite:$$cap_appwrite_version
+    restart: unless-stopped
+    entrypoint: worker-certificates
+    volumes:
+      - $$cap_appname-config:/storage/config:rw
+      - $$cap_appname-certificates:/storage/certificates:rw
     environment:
       _APP_ENV: $$cap_app_env
       _APP_WORKER_PER_CORE: $$cap_worker_per_core
@@ -591,24 +597,32 @@ services:
       _APP_DB_USER: $$cap_db_user
       _APP_DB_PASS: $$cap_db_pass
       _APP_LOGGING_CONFIG: $$cap_logging_config
+    caproverExtra:
+      notExposeAsWebApp: true
 
   $$cap_appname-worker-databases:
+    image: appwrite/appwrite:$$cap_appwrite_version
+    entrypoint: worker-databases
+    restart: unless-stopped
     environment:
-      _APP_ENV: $$cap_app_env
-      _APP_WORKER_PER_CORE: $$cap_worker_per_core
-      _APP_OPENSSL_KEY_V1: $$cap_encryption_key
-      _APP_REDIS_HOST: srv-captain--$$cap_appname-redis
-      _APP_REDIS_PORT: 6379
-      _APP_REDIS_USER: default
-      _APP_REDIS_PASS: $$cap_redis_pass
-      _APP_DB_HOST: srv-captain--$$cap_appname-db
-      _APP_DB_PORT: 3306
-      _APP_DB_SCHEMA: $$cap_db_name
-      _APP_DB_USER: $$cap_db_user
-      _APP_DB_PASS: $$cap_db_pass
-      _APP_LOGGING_CONFIG: $$cap_logging_config
+      - _APP_ENV: $$cap_app_env
+      - _APP_WORKER_PER_CORE: $$cap_worker_per_core
+      - _APP_OPENSSL_KEY_V1: $$cap_encryption_key
+      - _APP_REDIS_HOST: srv-captain--$$cap_appname-redis
+      - _APP_REDIS_PORT: 6379
+      - _APP_REDIS_USER: default
+      - _APP_REDIS_PASS: $$cap_redis_pass
+      - _APP_DB_HOST: srv-captain--$$cap_appname-db
+      - _APP_DB_PORT: 3306
+      - _APP_DB_SCHEMA: $$cap_db_name
+      - _APP_DB_USER: $$cap_db_user
+      - _APP_DB_PASS: $$cap_db_pass
+      - _APP_LOGGING_CONFIG: $$cap_logging_config
 
   $$cap_appname-worker-usage:
+    image: appwrite/appwrite:$$cap_appwrite_version
+    entrypoint: worker-usage
+    restart: unless-stopped
     environment:
       _APP_ENV: $$cap_app_env
       _APP_WORKER_PER_CORE: $$cap_worker_per_core
@@ -626,6 +640,9 @@ services:
       _APP_LOGGING_CONFIG: $$cap_logging_config
 
   $$cap_appname-task-maintenance:
+    image: appwrite/appwrite:$$cap_appwrite_version
+    entrypoint: maintenance
+    restart: unless-stopped
     environment:
       _APP_ENV: $$cap_app_env
       _APP_WORKER_PER_CORE: $$cap_worker_per_core

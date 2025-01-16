@@ -209,7 +209,11 @@ export const convertStructuredSchemaToZod = (schema: string | object): ICommonOb
 }
 
 export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) => {
+  const isAI = (message?: BaseMessage) => message && ['AIMessageChunk', 'AIMessage'].includes(message.constructor.name)
+  const isHuman = (message?: BaseMessage) => message && ['HumanMessage', 'HumanMessageChunk'].includes(message.constructor.name)
+
   const messages: BaseMessage[] = []
+
   for (const message of state.messages as unknown as BaseMessage[]) {
     // Sometimes Anthropic can return a message with content types of array, ignore that EXECEPT when tool calls are present
     if ((message as any).tool_calls?.length && message.content !== '') {
@@ -219,6 +223,23 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
     if (typeof message.content === 'string') {
       messages.push(message)
     }
+  }
+
+  const hasOnlyHumanMessages = messages.findIndex((message) => isAI(message)) === -1
+
+  if (hasOnlyHumanMessages) {
+    const tempMessages: BaseMessage[] = []
+    messages.forEach((message) => {
+      if (message.name) {
+        // ignore
+      } else if (message.additional_kwargs?.nodeId || Object.keys(message.response_metadata || {}).length) {
+        tempMessages.push(new AIMessage({ ...message }))
+      } else {
+        tempMessages.push(message)
+      }
+    })
+    messages.length = 0
+    messages.push(...tempMessages)
   }
 
   const isToolMessage = (message: BaseMessage) => message instanceof ToolMessage || message.constructor.name === 'ToolMessageChunk'
@@ -269,8 +290,8 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
 
   // fix tool result message
   for (let i = 0; i < messages.length; i++) {
-    const isPreviousHuman = ['HumanMessage', 'HumanMessageChunk'].includes(messages[i - 1]?.constructor.name)
-    if (isPreviousHuman && ['HumanMessage', 'HumanMessageChunk'].includes(messages[i]?.constructor.name)) {
+    const isPreviousHuman = isHuman(messages[i - 1])
+    if (isPreviousHuman && isHuman(messages[i])) {
       messages[i - 1] = new AIMessage({ ...messages[i - 1] })
     }
   }
@@ -278,8 +299,8 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
   const mergedMessages: BaseMessage[] = []
 
   for (let i = 0; i < messages.length; i++) {
-    const isPreviousMessageAI = ['AIMessageChunk', 'AIMessage'].includes(messages[i - 1]?.constructor.name)
-    const isCurrentMessageAI = ['AIMessageChunk', 'AIMessage'].includes(messages[i]?.constructor.name)
+    const isPreviousMessageAI = isAI(messages[i - 1])
+    const isCurrentMessageAI = isAI(messages[i])
 
     if (isPreviousMessageAI && isCurrentMessageAI) {
       messages[i].content = `${messages[i - 1].content}\n\n${messages[i].content}`
