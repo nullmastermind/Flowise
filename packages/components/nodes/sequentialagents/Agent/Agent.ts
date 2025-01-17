@@ -625,7 +625,8 @@ async function createAgent(
       sessionId: flowObj?.sessionId,
       chatId: flowObj?.chatId,
       input: flowObj?.input,
-      verbose: process.env.DEBUG === 'true' ? true : false,
+      // verbose: process.env.DEBUG === 'true' ? true : false,
+      verbose: false,
       maxIterations: maxIterations ? parseFloat(maxIterations) : undefined
     })
     return executor
@@ -730,7 +731,24 @@ async function agentNode(
     // @ts-ignore
     state.messages = restructureMessages(llm, state)
 
-    let result = await agent.invoke({ ...state, signal: abortControllerSignal.signal }, config)
+    const streamingConfig = {
+      ...config,
+      callbacks: [
+        {
+          handleLLMNewToken(token: string) {
+            process.stdout.write(token)
+          },
+          handleToolStart(tool: { name: string }, input: string) {
+            console.log(`\nUsing tool ${tool.name} with input: ${input}`)
+          }
+          // handleToolEnd(output: string) {
+          //   console.log(`Tool output: ${output}\n`)
+          // }
+        }
+      ]
+    }
+
+    let result = await agent.invoke({ ...state, signal: abortControllerSignal.signal }, streamingConfig)
 
     if (interrupt) {
       const messages = state.messages as unknown as BaseMessage[]
@@ -796,7 +814,7 @@ async function agentNode(
     } else {
       return {
         messages: [
-          new HumanMessage({
+          new AIMessageChunk({
             content: outputContent,
             name,
             additional_kwargs: Object.keys(additional_kwargs).length ? additional_kwargs : undefined

@@ -224,23 +224,28 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
       messages.push(message)
     }
   }
+  // console.log('Prefixed messages:', messages.map(message => {
+  //   if (message instanceof ToolMessage || message.constructor.name === 'ToolMessageChunk') {
+  //     return 'ToolMessage'
+  //   }
+  //   return `${message.constructor.name}: ${message.content}`
+  // }))
+  // const hasOnlyHumanMessages = messages.findIndex((message) => isAI(message)) === -1
 
-  const hasOnlyHumanMessages = messages.findIndex((message) => isAI(message)) === -1
-
-  if (hasOnlyHumanMessages) {
-    const tempMessages: BaseMessage[] = []
-    messages.forEach((message) => {
-      if (message.name) {
-        // ignore
-      } else if (message.additional_kwargs?.nodeId || Object.keys(message.response_metadata || {}).length) {
-        tempMessages.push(new AIMessage({ ...message }))
-      } else {
-        tempMessages.push(message)
-      }
-    })
-    messages.length = 0
-    messages.push(...tempMessages)
-  }
+  // if (hasOnlyHumanMessages) {
+  //   const tempMessages: BaseMessage[] = []
+  //   messages.forEach((message) => {
+  //     if (message.name) {
+  //       // ignore
+  //     } else if (message.additional_kwargs?.nodeId || Object.keys(message.response_metadata || {}).length) {
+  //       tempMessages.push(new AIMessage({ ...message }))
+  //     } else {
+  //       tempMessages.push(message)
+  //     }
+  //   })
+  //   messages.length = 0
+  //   messages.push(...tempMessages)
+  // }
 
   const isToolMessage = (message: BaseMessage) => message instanceof ToolMessage || message.constructor.name === 'ToolMessageChunk'
   const isAIMessage = (message: BaseMessage) => message instanceof AIMessage || message.constructor.name === 'AIMessageChunk'
@@ -289,35 +294,56 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
   }
 
   // fix tool result message
-  for (let i = 0; i < messages.length; i++) {
-    const isPreviousHuman = isHuman(messages[i - 1])
-    if (isPreviousHuman && isHuman(messages[i])) {
-      messages[i - 1] = new AIMessage({ ...messages[i - 1] })
-    }
-  }
+  // for (let i = 0; i < messages.length; i++) {
+  //   const isPreviousHuman = isHuman(messages[i - 1])
+  //   if (isPreviousHuman && isHuman(messages[i])) {
+  //     messages[i - 1] = new AIMessage({ ...messages[i - 1] })
+  //   }
+  // }
 
-  const mergedMessages: BaseMessage[] = []
+  // const mergedMessages: BaseMessage[] = []
 
-  for (let i = 0; i < messages.length; i++) {
-    const isPreviousMessageAI = isAI(messages[i - 1])
-    const isCurrentMessageAI = isAI(messages[i])
+  // for (let i = 0; i < messages.length; i++) {
+  //   const isPreviousMessageAI = isAI(messages[i - 1])
+  //   const isCurrentMessageAI = isAI(messages[i])
 
-    if (isPreviousMessageAI && isCurrentMessageAI) {
-      messages[i].content = `${messages[i - 1].content}\n\n${messages[i].content}`
-    } else {
-      mergedMessages.push(messages[i])
+  //   if (isPreviousMessageAI && isCurrentMessageAI) {
+  //     messages[i].content = `${messages[i - 1].content}\n\n${messages[i].content}`
+  //   } else {
+  //     mergedMessages.push(messages[i])
+  //   }
+  // }
+
+  // If last message is AI, add a human message to avoid validation error
+  // if (mergedMessages.length > 0 && ['AIMessageChunk', 'AIMessage'].includes(mergedMessages[mergedMessages.length - 1].constructor.name)) {
+  //   // mergedMessages.push(new HumanMessage({ content: 'Please continue.' }))
+  //   mergedMessages.pop()
+  // }
+
+  // Remove AIMessage if followed by AIMessageChunk and change AIMessageChunk to AIMessage
+  for (let i = messages.length - 2; i >= 0; i--) {
+    if (messages[i].constructor.name === 'AIMessage' && messages[i + 1].constructor.name === 'AIMessageChunk') {
+      messages.splice(i, 1)
+      messages[i] = new AIMessage({ ...messages[i] })
     }
   }
 
   // If last message is AI, add a human message to avoid validation error
-  if (mergedMessages.length > 0 && ['AIMessageChunk', 'AIMessage'].includes(mergedMessages[mergedMessages.length - 1].constructor.name)) {
+  if (messages.length > 0 && ['AIMessageChunk', 'AIMessage'].includes(messages[messages.length - 1].constructor.name)) {
     // mergedMessages.push(new HumanMessage({ content: 'Please continue.' }))
-    mergedMessages.pop()
+    messages.pop()
   }
 
-  console.log('mergedMessages:', mergedMessages)
-
-  return mergedMessages
+  console.log(
+    'Fixed messages:',
+    messages.map((message) => {
+      if (message instanceof ToolMessage || message.constructor.name === 'ToolMessageChunk') {
+        return 'ToolMessage'
+      }
+      return `${message.constructor.name}: ${message.content}`
+    })
+  )
+  return messages
 }
 
 export class ExtractTool extends StructuredTool {
