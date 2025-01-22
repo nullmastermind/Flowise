@@ -1,27 +1,25 @@
 import { Request, Response } from 'express'
 import { addWelcomeMessage, getWelcomeMessage } from '../../services/welcome-message'
 /**
- * Controller để xử lý yêu cầu lưu thông điệp chào mừng vào cơ sở dữ liệu.
- * @param {Request} req - Yêu cầu từ người dùng.
- * @param {Response} res - Phản hồi từ máy chủ.
+ * @param {Request} req
+ * @param {Response} res
  */
 export const saveWelcomeMessage = async (req: Request, res: Response) => {
   const { chatflowid, welcomeMessage } = req.body
 
   if (!chatflowid || !welcomeMessage) {
-    return res.status(400).json({ message: 'chatflowid và welcomeMessage là bắt buộc' })
+    return res.status(400).json({ message: 'chatflowid and welcomeMessage are required' })
   }
 
   try {
     const updatedChatFlow = await addWelcomeMessage(chatflowid, welcomeMessage)
     return res.status(200).json({
-      message: 'Thông điệp chào mừng đã được lưu thành công!',
       chatFlow: updatedChatFlow
     })
   } catch (error) {
     console.error('Error saving welcome message:', error)
     return res.status(500).json({
-      message: 'Đã xảy ra lỗi khi lưu thông điệp chào mừng.',
+      message: 'An error occurred while saving the welcome message.',
       error: error
     })
   }
@@ -37,7 +35,7 @@ export const fetchWelcomeMessage = async (req: Request, res: Response) => {
 
   if (!chatflowid || typeof chatflowid !== 'string') {
     return res.status(400).json({
-      message: 'chatflowid là bắt buộc và phải là chuỗi hợp lệ.'
+      message: 'chatflowid is required and must be a valid string.'
     })
   }
 
