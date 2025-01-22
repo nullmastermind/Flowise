@@ -1,14 +1,14 @@
 import { NodeVM } from '@flowiseai/nodevm'
 import { ChatAnthropic } from '@langchain/anthropic'
-import { mergeConfigs, Runnable, RunnableConfig } from '@langchain/core/runnables'
-import { AIMessage, BaseMessage, HumanMessage, MessageContentImageUrl, ToolMessage } from '@langchain/core/messages'
 import { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import { AIMessage, BaseMessage, HumanMessage, MessageContentImageUrl, ToolMessage } from '@langchain/core/messages'
 import { BaseMessagePromptTemplateLike, ChatPromptTemplate } from '@langchain/core/prompts'
+import { mergeConfigs, Runnable, RunnableConfig } from '@langchain/core/runnables'
 import { StructuredTool } from '@langchain/core/tools'
 import { ChatMistralAI } from '@langchain/mistralai'
-import { OpenAI } from "@langchain/openai"
+import { ChatOpenAI } from '@langchain/openai'
 import { config } from 'dotenv'
-import { ConversationSummaryBufferMemory } from "langchain/memory"
+import { ConversationSummaryBufferMemory } from 'langchain/memory'
 import { get } from 'lodash'
 import { resolve } from 'path'
 import { DataSource } from 'typeorm'
@@ -306,7 +306,7 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
 }
 
 export const summaryMessageHistory = async (state: ISeqAgentsState) => {
-  const messages: BaseMessage[] = [];
+  const messages: BaseMessage[] = []
 
   for (const message of state.messages as unknown as BaseMessage[]) {
     // Sometimes Anthropic can return a message with content types of array, ignore that EXECEPT when tool calls are present
@@ -319,60 +319,56 @@ export const summaryMessageHistory = async (state: ISeqAgentsState) => {
     }
   }
 
-  if (messages.length <= 1) return messages;
+  if (messages.length <= 1) return messages
 
-  const chatHistory: string[] = [];
-  let lastMessage = '';
+  const chatHistory: string[] = []
+  let lastMessage = ''
 
-  config({ path: resolve(__dirname, '../../../server/.env') });
+  config({ path: resolve(__dirname, '../../../server/.env') })
 
   const memory = new ConversationSummaryBufferMemory({
     llm: new ChatOpenAI({
-      model: "claude-3.5-sonnet",
+      model: 'claude-3.5-sonnet',
       temperature: 0,
       apiKey: process.env.SUMMARY_API_KEY,
       configuration: {
-        baseURL: "https://stock.cmcts.ai/litellm/v1",
-      },
+        baseURL: 'https://stock.cmcts.ai/litellm/v1'
+      }
     }),
     maxTokenLimit: 100,
-    returnMessages: true,
-  });
+    returnMessages: true
+  })
 
   for (const message of messages) {
-    if (!message) continue;
+    if (!message) continue
 
-    const parsedMessage = JSON.parse(JSON.stringify(message));
-    if (parsedMessage.id?.includes("HumanMessage")) {
-      const content = parsedMessage.kwargs?.content || '';
-      chatHistory.push(content);
-      lastMessage = content;
+    const parsedMessage = JSON.parse(JSON.stringify(message))
+    if (parsedMessage.id?.includes('HumanMessage')) {
+      const content = parsedMessage.kwargs?.content || ''
+      chatHistory.push(content)
+      lastMessage = content
     }
   }
 
-  if (!chatHistory.length || !lastMessage) return messages;
+  if (!chatHistory.length || !lastMessage) return messages
   try {
-    const chatHistoryString = JSON.stringify(chatHistory, null, 2);
-    await memory.saveContext(
-      { input: lastMessage },
-      { output: chatHistoryString }
-    );
+    const chatHistoryString = JSON.stringify(chatHistory, null, 2)
+    await memory.saveContext({ input: lastMessage }, { output: chatHistoryString })
 
-    const history = await memory.loadMemoryVariables({});
+    const history = await memory.loadMemoryVariables({})
 
-    const contentList = history.history.map((message: any) => message.content);
+    const contentList = history.history.map((message: any) => message.content)
 
-    
     return [
       new HumanMessage({
-        content: `<chat_history>\n${contentList}\n</chat_history>\n\n${lastMessage}`,
-      }),
-    ];
+        content: `<chat_history>\n${contentList}\n</chat_history>\n\n${lastMessage}`
+      })
+    ]
   } catch (error) {
-    console.error('Error in summaryMessageHistory:', error);
-    return messages;
+    console.error('Error in summaryMessageHistory:', error)
+    return messages
   }
-};
+}
 
 export class ExtractTool extends StructuredTool {
   name = 'extract'

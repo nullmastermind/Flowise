@@ -32,6 +32,7 @@ export interface IChatFlow {
   apiConfig?: string
   category?: string
   type?: ChatflowType
+  welcomeMessage?: string
 }
 
 export interface IChatMessage {

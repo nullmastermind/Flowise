@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { Entity, Column, CreateDateColumn, UpdateDateColumn, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm'
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 import { ChatflowType, IChatFlow } from '../../Interface'
 import { User } from './User'
 
@@ -19,6 +19,9 @@ export class ChatFlow implements IChatFlow {
 
   @Column({ nullable: true })
   isPublic?: boolean
+
+  @Column({ nullable: true })
+  welcomeMessage?: string
 
   @Column({ nullable: true })
   apikeyid?: string

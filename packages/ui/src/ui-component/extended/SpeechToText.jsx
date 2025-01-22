@@ -1,22 +1,22 @@
-import { useDispatch } from 'react-redux'
-import { useState, useEffect } from 'react'
+import { closeSnackbar as closeSnackbarAction, enqueueSnackbar as enqueueSnackbarAction, SET_CHATFLOW } from '@/store/actions'
 import PropTypes from 'prop-types'
-import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction, SET_CHATFLOW } from '@/store/actions'
+import { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
 
 // material-ui
-import { Typography, Box, Button, FormControl, ListItem, ListItemAvatar, ListItemText, MenuItem, Select } from '@mui/material'
+import { Box, Button, FormControl, ListItem, ListItemAvatar, ListItemText, MenuItem, Select, Typography } from '@mui/material'
 import { IconX } from '@tabler/icons-react'
 
 // Project import
-import CredentialInputHandler from '@/views/canvas/CredentialInputHandler'
-import { TooltipWithParser } from '@/ui-component/tooltip/TooltipWithParser'
-import { SwitchInput } from '@/ui-component/switch/Switch'
-import { Input } from '@/ui-component/input/Input'
-import { StyledButton } from '@/ui-component/button/StyledButton'
-import { Dropdown } from '@/ui-component/dropdown/Dropdown'
-import openAISVG from '@/assets/images/openai.svg'
 import assemblyAIPng from '@/assets/images/assemblyai.png'
 import localAiPng from '@/assets/images/localai.png'
+import openAISVG from '@/assets/images/openai.svg'
+import { StyledButton } from '@/ui-component/button/StyledButton'
+import { Dropdown } from '@/ui-component/dropdown/Dropdown'
+import { Input } from '@/ui-component/input/Input'
+import { SwitchInput } from '@/ui-component/switch/Switch'
+import { TooltipWithParser } from '@/ui-component/tooltip/TooltipWithParser'
+import CredentialInputHandler from '@/views/canvas/CredentialInputHandler'
 
 // store
 import useNotifier from '@/utils/useNotifier'
