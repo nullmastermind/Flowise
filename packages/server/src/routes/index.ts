@@ -6,6 +6,7 @@ import chatMessageRouter from './chat-messages'
 import chatflowsRouter from './chatflows'
 import chatflowsStreamingRouter from './chatflows-streaming'
 import chatflowsUploadsRouter from './chatflows-uploads'
+import chatwoot from './chatwoot'
 import componentsCredentialsRouter from './components-credentials'
 import componentsCredentialsIconRouter from './components-credentials-icon'
 import credentialsRouter from './credentials'
@@ -38,12 +39,12 @@ import publicChatflowsRouter from './public-chatflows'
 import statsRouter from './stats'
 import toolsRouter from './tools'
 import upsertHistoryRouter from './upsert-history'
+import user from './user'
 import variablesRouter from './variables'
 import vectorRouter from './vectors'
 import verifyRouter from './verify'
 import versionRouter from './versions'
-import user from './user'
-import chatwoot from './chatwoot'
+import welcomeMessage from './welcome-message'
 
 const router: Router = express.Router()
 
@@ -92,5 +93,6 @@ router.use('/version', versionRouter)
 router.use('/upsert-history', upsertHistoryRouter)
 router.use('/user', user)
 router.use('/chatwoot', chatwoot)
+router.use('/welcome-message', welcomeMessage)
 
 export default router

@@ -1,10 +1,13 @@
 import { removeFolderFromStorage } from 'flowise-components'
 import { StatusCodes } from 'http-status-codes'
+import { QueryRunner } from 'typeorm'
 import { ChatflowType, IReactFlowObject } from '../../Interface'
+import { FLOWISE_COUNTER_STATUS, FLOWISE_METRIC_COUNTERS } from '../../Interface.Metrics'
 import { ChatFlow } from '../../database/entities/ChatFlow'
 import { ChatMessage } from '../../database/entities/ChatMessage'
 import { ChatMessageFeedback } from '../../database/entities/ChatMessageFeedback'
 import { UpsertHistory } from '../../database/entities/UpsertHistory'
+import { User } from '../../database/entities/User'
 import { InternalFlowiseError } from '../../errors/internalFlowiseError'
 import { getErrorMessage } from '../../errors/utils'
 import documentStoreService from '../../services/documentstore'
@@ -13,9 +16,6 @@ import { containsBase64File, updateFlowDataWithFilePaths } from '../../utils/fil
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { utilGetUploadsConfig } from '../../utils/getUploadsConfig'
 import logger from '../../utils/logger'
-import { FLOWISE_METRIC_COUNTERS, FLOWISE_COUNTER_STATUS } from '../../Interface.Metrics'
-import { QueryRunner } from 'typeorm'
-import { User } from '../../database/entities/User'
 
 // Check if chatflow valid for streaming
 const checkIfChatflowIsValidForStreaming = async (chatflowId: string): Promise<any> => {
@@ -398,6 +398,15 @@ const _checkAndUpdateDocumentStoreUsage = async (chatflow: ChatFlow) => {
   }
 }
 
+export const getAssistantAvatar = async (chatflowid: string): Promise<string | null> => {
+  const appServer = getRunningExpressApp()
+  const repository = appServer.AppDataSource.getRepository(ChatFlow)
+
+  const record = await repository.findOneBy({ id: chatflowid })
+
+  return record?.assistantAvatar ?? null
+}
+
 export default {
   checkIfChatflowIsValidForStreaming,
   checkIfChatflowIsValidForUploads,
@@ -411,5 +420,6 @@ export default {
   updateChatflow,
   getSinglePublicChatflow,
   getSinglePublicChatbotConfig,
-  getControlChatflowsOfAdmin
+  getControlChatflowsOfAdmin,
+  getAssistantAvatar
 }
