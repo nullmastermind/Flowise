@@ -1,0 +1,27 @@
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - LITELLM_LOG=ERROR
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    ports:
+      - '${EXPOSE_PORT:-9001}:4000'
+    command: --config /app/config.yaml
+  postgres:
+    env_file:
+      - .env
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+volumes:
+  postgres_data:
+    driver: local

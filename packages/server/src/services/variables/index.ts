@@ -4,128 +4,163 @@ import { Variable } from '../../database/entities/Variable'
 import { InternalFlowiseError } from '../../errors/internalFlowiseError'
 import { getErrorMessage } from '../../errors/utils'
 import { QueryRunner } from 'typeorm'
+import { User, UserRole } from '../../database/entities/User'
 
-const createVariable = async (newVariable: Variable) => {
-    try {
-        const appServer = getRunningExpressApp()
-        const variable = await appServer.AppDataSource.getRepository(Variable).create(newVariable)
-        const dbResponse = await appServer.AppDataSource.getRepository(Variable).save(variable)
-        return dbResponse
-    } catch (error) {
-        throw new InternalFlowiseError(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            `Error: variablesServices.createVariable - ${getErrorMessage(error)}`
-        )
+const createVariable = async (req: any, newVariable: Variable) => {
+  try {
+    const { user } = req
+
+    if (!user.id) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
     }
+
+    const appServer = getRunningExpressApp()
+
+    const foundUser = await appServer.AppDataSource.getRepository(User).findOneBy({ id: user.id })
+
+    if (!foundUser) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+    }
+
+    const variable = appServer.AppDataSource.getRepository(Variable).create({ ...newVariable, userId: foundUser.id })
+    const dbResponse = await appServer.AppDataSource.getRepository(Variable).save(variable)
+    return dbResponse
+  } catch (error) {
+    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: variablesServices.createVariable - ${getErrorMessage(error)}`)
+  }
 }
 
 const deleteVariable = async (variableId: string): Promise<any> => {
-    try {
-        const appServer = getRunningExpressApp()
-        const dbResponse = await appServer.AppDataSource.getRepository(Variable).delete({ id: variableId })
-        return dbResponse
-    } catch (error) {
-        throw new InternalFlowiseError(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            `Error: variablesServices.deleteVariable - ${getErrorMessage(error)}`
-        )
-    }
+  try {
+    const appServer = getRunningExpressApp()
+    const dbResponse = await appServer.AppDataSource.getRepository(Variable).delete({ id: variableId })
+    return dbResponse
+  } catch (error) {
+    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: variablesServices.deleteVariable - ${getErrorMessage(error)}`)
+  }
 }
 
-const getAllVariables = async () => {
-    try {
-        const appServer = getRunningExpressApp()
-        const dbResponse = await appServer.AppDataSource.getRepository(Variable).find()
-        return dbResponse
-    } catch (error) {
-        throw new InternalFlowiseError(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            `Error: variablesServices.getAllVariables - ${getErrorMessage(error)}`
-        )
+const getAllVariables = async (req?: any) => {
+  try {
+    const appServer = getRunningExpressApp()
+    let dbResponse
+
+    if (req) {
+      const { user } = req
+      if (!user.id) {
+        throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+      }
+      const foundUser = await appServer.AppDataSource.getRepository(User).findOneBy({ id: user.id })
+      if (!foundUser) {
+        throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+      }
+      dbResponse = await appServer.AppDataSource.getRepository(Variable).findBy({ userId: foundUser.id })
+    } else {
+      dbResponse = await appServer.AppDataSource.getRepository(Variable).find()
     }
+
+    return dbResponse
+  } catch (error) {
+    throw new InternalFlowiseError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      `Error: variablesServices.getAllVariables - ${getErrorMessage(error)}`
+    )
+  }
 }
 
-const getVariableById = async (variableId: string) => {
-    try {
-        const appServer = getRunningExpressApp()
-        const dbResponse = await appServer.AppDataSource.getRepository(Variable).findOneBy({
-            id: variableId
-        })
-        return dbResponse
-    } catch (error) {
-        throw new InternalFlowiseError(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            `Error: variablesServices.getVariableById - ${getErrorMessage(error)}`
-        )
+const getVariableById = async (req: any) => {
+  try {
+    const { user } = req
+    const variableId = req.params.id
+    const appServer = getRunningExpressApp()
+
+    if (!user.id) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
     }
+    const foundUser = await appServer.AppDataSource.getRepository(User).findOneBy({ id: user.id })
+    if (!foundUser) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+    }
+    let dbResponse
+    if (foundUser.role !== UserRole.ADMIN) {
+      dbResponse = await appServer.AppDataSource.getRepository(Variable).findOneBy({
+        id: variableId,
+        userId: user.id
+      })
+    } else {
+      dbResponse = await appServer.AppDataSource.getRepository(Variable).findOneBy({
+        id: variableId
+      })
+    }
+    return dbResponse
+  } catch (error) {
+    throw new InternalFlowiseError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      `Error: variablesServices.getVariableById - ${getErrorMessage(error)}`
+    )
+  }
 }
 
 const updateVariable = async (variable: Variable, updatedVariable: Variable) => {
-    try {
-        const appServer = getRunningExpressApp()
-        const tmpUpdatedVariable = await appServer.AppDataSource.getRepository(Variable).merge(variable, updatedVariable)
-        const dbResponse = await appServer.AppDataSource.getRepository(Variable).save(tmpUpdatedVariable)
-        return dbResponse
-    } catch (error) {
-        throw new InternalFlowiseError(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            `Error: variablesServices.updateVariable - ${getErrorMessage(error)}`
-        )
-    }
+  try {
+    const appServer = getRunningExpressApp()
+    const tmpUpdatedVariable = await appServer.AppDataSource.getRepository(Variable).merge(variable, updatedVariable)
+    const dbResponse = await appServer.AppDataSource.getRepository(Variable).save(tmpUpdatedVariable)
+    return dbResponse
+  } catch (error) {
+    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: variablesServices.updateVariable - ${getErrorMessage(error)}`)
+  }
 }
 
 const importVariables = async (newVariables: Partial<Variable>[], queryRunner?: QueryRunner): Promise<any> => {
-    try {
-        const appServer = getRunningExpressApp()
-        const repository = queryRunner ? queryRunner.manager.getRepository(Variable) : appServer.AppDataSource.getRepository(Variable)
+  try {
+    const appServer = getRunningExpressApp()
+    const repository = queryRunner ? queryRunner.manager.getRepository(Variable) : appServer.AppDataSource.getRepository(Variable)
 
-        // step 1 - check whether array is zero
-        if (newVariables.length == 0) return
+    // step 1 - check whether array is zero
+    if (newVariables.length == 0) return
 
-        // step 2 - check whether ids are duplicate in database
-        let ids = '('
-        let count: number = 0
-        const lastCount = newVariables.length - 1
-        newVariables.forEach((newVariable) => {
-            ids += `'${newVariable.id}'`
-            if (lastCount != count) ids += ','
-            if (lastCount == count) ids += ')'
-            count += 1
-        })
+    // step 2 - check whether ids are duplicate in database
+    let ids = '('
+    let count: number = 0
+    const lastCount = newVariables.length - 1
+    newVariables.forEach((newVariable) => {
+      ids += `'${newVariable.id}'`
+      if (lastCount != count) ids += ','
+      if (lastCount == count) ids += ')'
+      count += 1
+    })
 
-        const selectResponse = await repository.createQueryBuilder('v').select('v.id').where(`v.id IN ${ids}`).getMany()
-        const foundIds = selectResponse.map((response) => {
-            return response.id
-        })
+    const selectResponse = await repository.createQueryBuilder('v').select('v.id').where(`v.id IN ${ids}`).getMany()
+    const foundIds = selectResponse.map((response) => {
+      return response.id
+    })
 
-        // step 3 - remove ids that are only duplicate
-        const prepVariables: Partial<Variable>[] = newVariables.map((newVariable) => {
-            let id: string = ''
-            if (newVariable.id) id = newVariable.id
-            if (foundIds.includes(id)) {
-                newVariable.id = undefined
-                newVariable.name += ' (1)'
-            }
-            return newVariable
-        })
+    // step 3 - remove ids that are only duplicate
+    const prepVariables: Partial<Variable>[] = newVariables.map((newVariable) => {
+      let id: string = ''
+      if (newVariable.id) id = newVariable.id
+      if (foundIds.includes(id)) {
+        newVariable.id = undefined
+        newVariable.name += ' (1)'
+      }
+      return newVariable
+    })
 
-        // step 4 - transactional insert array of entities
-        const insertResponse = await repository.insert(prepVariables)
+    // step 4 - transactional insert array of entities
+    const insertResponse = await repository.insert(prepVariables)
 
-        return insertResponse
-    } catch (error) {
-        throw new InternalFlowiseError(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            `Error: variableService.importVariables - ${getErrorMessage(error)}`
-        )
-    }
+    return insertResponse
+  } catch (error) {
+    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: variableService.importVariables - ${getErrorMessage(error)}`)
+  }
 }
 
 export default {
-    createVariable,
-    deleteVariable,
-    getAllVariables,
-    getVariableById,
-    updateVariable,
-    importVariables
+  createVariable,
+  deleteVariable,
+  getAllVariables,
+  getVariableById,
+  updateVariable,
+  importVariables
 }

@@ -11,19 +11,21 @@ import { Lead } from './Lead'
 import { UpsertHistory } from './UpsertHistory'
 import { ApiKey } from './ApiKey'
 import { CustomTemplate } from './CustomTemplate'
+import { User } from './User'
 
 export const entities = {
-    ChatFlow,
-    ChatMessage,
-    ChatMessageFeedback,
-    Credential,
-    Tool,
-    Assistant,
-    Variable,
-    DocumentStore,
-    DocumentStoreFileChunk,
-    Lead,
-    UpsertHistory,
-    ApiKey,
-    CustomTemplate
+  ChatFlow,
+  ChatMessage,
+  ChatMessageFeedback,
+  Credential,
+  Tool,
+  Assistant,
+  Variable,
+  DocumentStore,
+  DocumentStoreFileChunk,
+  Lead,
+  UpsertHistory,
+  ApiKey,
+  CustomTemplate,
+  User
 }

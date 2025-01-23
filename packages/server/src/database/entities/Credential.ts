@@ -4,23 +4,26 @@ import { ICredential } from '../../Interface'
 
 @Entity()
 export class Credential implements ICredential {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
-    @Column()
-    name: string
+  @Column()
+  name: string
 
-    @Column()
-    credentialName: string
+  @Column()
+  credentialName: string
 
-    @Column({ type: 'text' })
-    encryptedData: string
+  @Column({ type: 'text' })
+  encryptedData: string
 
-    @Column({ type: 'timestamp' })
-    @CreateDateColumn()
-    createdDate: Date
+  @Column({ type: 'uuid', nullable: true })
+  userId: string
 
-    @Column({ type: 'timestamp' })
-    @UpdateDateColumn()
-    updatedDate: Date
+  @Column({ type: 'timestamp' })
+  @CreateDateColumn()
+  createdDate: Date
+
+  @Column({ type: 'timestamp' })
+  @UpdateDateColumn()
+  updatedDate: Date
 }

@@ -2,6 +2,7 @@ import React from 'react'
 import App from '@/App'
 import { store } from '@/store'
 import { createRoot } from 'react-dom/client'
+import config from '@/config'
 
 // style + assets
 import '@/assets/scss/style.scss'
@@ -17,17 +18,17 @@ const container = document.getElementById('root')
 const root = createRoot(container)
 
 root.render(
-    <React.StrictMode>
-        <Provider store={store}>
-            <BrowserRouter>
-                <SnackbarProvider>
-                    <ConfirmContextProvider>
-                        <ReactFlowContext>
-                            <App />
-                        </ReactFlowContext>
-                    </ConfirmContextProvider>
-                </SnackbarProvider>
-            </BrowserRouter>
-        </Provider>
-    </React.StrictMode>
+  <React.StrictMode>
+    <Provider store={store}>
+      <BrowserRouter basename={config.basename}>
+        <SnackbarProvider>
+          <ConfirmContextProvider>
+            <ReactFlowContext>
+              <App />
+            </ReactFlowContext>
+          </ConfirmContextProvider>
+        </SnackbarProvider>
+      </BrowserRouter>
+    </Provider>
+  </React.StrictMode>
 )

@@ -25,25 +25,50 @@ export const REMOVE_SNACKBAR = 'REMOVE_SNACKBAR'
 export const SHOW_CONFIRM = 'SHOW_CONFIRM'
 export const HIDE_CONFIRM = 'HIDE_CONFIRM'
 
-export const enqueueSnackbar = (notification) => {
-    const key = notification.options && notification.options.key
+// action - user reducer
+export const USER_LOGIN_SUCCESS = 'USER_LOGIN_SUCCESS'
+export const USER_LOGOUT = 'USER_LOGOUT'
 
-    return {
-        type: ENQUEUE_SNACKBAR,
-        notification: {
-            ...notification,
-            key: key || new Date().getTime() + Math.random()
-        }
+export const loginAction = (login) => {
+  const key = login.options && login.options.key
+
+  return {
+    type: USER_LOGIN_SUCCESS,
+    payload: {
+      ...login,
+      key: key || new Date().getTime() + Math.random()
     }
+  }
+}
+
+export const logoutAction = (login) => {
+  const key = login.options && login.options.key
+
+  return {
+    type: USER_LOGOUT,
+    payload: { key }
+  }
+}
+
+export const enqueueSnackbar = (notification) => {
+  const key = notification.options && notification.options.key
+
+  return {
+    type: ENQUEUE_SNACKBAR,
+    notification: {
+      ...notification,
+      key: key || new Date().getTime() + Math.random()
+    }
+  }
 }
 
 export const closeSnackbar = (key) => ({
-    type: CLOSE_SNACKBAR,
-    dismissAll: !key, // dismiss all if no key has been defined
-    key
+  type: CLOSE_SNACKBAR,
+  dismissAll: !key, // dismiss all if no key has been defined
+  key
 })
 
 export const removeSnackbar = (key) => ({
-    type: REMOVE_SNACKBAR,
-    key
+  type: REMOVE_SNACKBAR,
+  key
 })

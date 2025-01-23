@@ -4,23 +4,26 @@ import { IVariable } from '../../Interface'
 
 @Entity()
 export class Variable implements IVariable {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
-    @Column()
-    name: string
+  @Column()
+  name: string
 
-    @Column({ nullable: true, type: 'text' })
-    value: string
+  @Column({ nullable: true, type: 'text' })
+  value: string
 
-    @Column({ default: 'string', type: 'text' })
-    type: string
+  @Column({ default: 'string', type: 'text' })
+  type: string
 
-    @Column({ type: 'timestamp' })
-    @CreateDateColumn()
-    createdDate: Date
+  @Column({ type: 'uuid', nullable: true })
+  userId: string
 
-    @Column({ type: 'timestamp' })
-    @UpdateDateColumn()
-    updatedDate: Date
+  @Column({ type: 'timestamp' })
+  @CreateDateColumn()
+  createdDate: Date
+
+  @Column({ type: 'timestamp' })
+  @UpdateDateColumn()
+  updatedDate: Date
 }
