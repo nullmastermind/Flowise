@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import apiKeyService from '../../services/apikey'
 import { ChatFlow } from '../../database/entities/ChatFlow'
-import { updateRateLimiter } from '../../utils/rateLimit'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
-import chatflowsService from '../../services/chatflows'
-import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { User } from '../../database/entities/User'
+import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import apiKeyService from '../../services/apikey'
+import chatflowsService, { getAssistantAvatar } from '../../services/chatflows'
+import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
+import { updateRateLimiter } from '../../utils/rateLimit'
 
 const checkIfChatflowIsValidForStreaming = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -187,6 +187,37 @@ const getSinglePublicChatbotConfig = async (req: Request, res: Response, next: N
     return res.json(apiResponse)
   } catch (error) {
     next(error)
+  }
+}
+
+export const fetchAssistantAvatar = async (req: Request, res: Response) => {
+  const { chatflowid } = req.query
+
+  if (!chatflowid || typeof chatflowid !== 'string') {
+    return res.status(400).json({
+      message: 'chatflowid là bắt buộc và phải là chuỗi hợp lệ.'
+    })
+  }
+
+  try {
+    const avatarBase64 = await getAssistantAvatar(chatflowid)
+
+    if (avatarBase64) {
+      return res.status(200).json({
+        message: 'Avatar retrieved successfully.',
+        avatar: avatarBase64
+      })
+    } else {
+      return res.status(404).json({
+        message: 'Không tìm thấy avatar cho chatflowid đã cung cấp.'
+      })
+    }
+  } catch (error) {
+    console.error('Error fetching assistant avatar:', error)
+    return res.status(500).json({
+      message: 'Đã xảy ra lỗi khi truy vấn avatar.',
+      error: error
+    })
   }
 }
 

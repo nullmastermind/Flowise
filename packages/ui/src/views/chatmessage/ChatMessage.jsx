@@ -1,87 +1,77 @@
-import { useState, useRef, useEffect, useCallback, Fragment } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import PropTypes from 'prop-types'
+import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
+import axios from 'axios'
 import { cloneDeep } from 'lodash'
+import PropTypes from 'prop-types'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import rehypeMathjax from 'rehype-mathjax'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
-import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
-import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
 
+import userPNG from '@/assets/images/account.png'
+import robotPNG from '@/assets/images/ezgif.com-resize_crop_64.gif'
+import multiagent_supervisorPNG from '@/assets/images/multiagent_supervisor.png'
+import multiagent_workerPNG from '@/assets/images/multiagent_worker.png'
+import audioUploadSVG from '@/assets/images/wave-sound.jpg'
 import {
   Box,
   Button,
   Card,
   CardMedia,
-  Chip,
   CircularProgress,
   Divider,
   IconButton,
   InputAdornment,
   OutlinedInput,
-  Typography,
-  CardContent,
-  Stack
+  Stack,
+  Typography
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import {
   IconCircleDot,
-  IconDownload,
-  IconSend,
   IconMicrophone,
-  IconPhotoPlus,
-  IconTrash,
-  IconX,
-  IconTool,
-  IconSquareFilled,
-  IconDeviceSdCard,
-  IconCheck,
   IconPaperclip,
-  IconSparkles
+  IconPhotoPlus,
+  IconSend,
+  IconSparkles,
+  IconSquareFilled,
+  IconTrash,
+  IconX
 } from '@tabler/icons-react'
-import robotPNG from '@/assets/images/ezgif.com-resize_crop_64.gif'
-import userPNG from '@/assets/images/account.png'
-import multiagent_supervisorPNG from '@/assets/images/multiagent_supervisor.png'
-import multiagent_workerPNG from '@/assets/images/multiagent_worker.png'
-import audioUploadSVG from '@/assets/images/wave-sound.jpg'
-import nextAgentGIF from '@/assets/images/next-agent.gif'
 
 // project import
+import { ImageBackdrop, ImageButton, ImageMarked, ImageSrc } from '@/ui-component/button/ImageButton'
+import StarterPromptsCard from '@/ui-component/cards/StarterPromptsCard'
+import ChatFeedbackContentDialog from '@/ui-component/dialog/ChatFeedbackContentDialog'
+import SourceDocDialog from '@/ui-component/dialog/SourceDocDialog'
 import { CodeBlock } from '@/ui-component/markdown/CodeBlock'
 import { MemoizedReactMarkdown } from '@/ui-component/markdown/MemoizedReactMarkdown'
-import SourceDocDialog from '@/ui-component/dialog/SourceDocDialog'
-import ChatFeedbackContentDialog from '@/ui-component/dialog/ChatFeedbackContentDialog'
-import StarterPromptsCard from '@/ui-component/cards/StarterPromptsCard'
-import { ImageButton, ImageSrc, ImageBackdrop, ImageMarked } from '@/ui-component/button/ImageButton'
-import CopyToClipboardButton from '@/ui-component/button/CopyToClipboardButton'
-import ThumbsUpButton from '@/ui-component/button/ThumbsUpButton'
-import ThumbsDownButton from '@/ui-component/button/ThumbsDownButton'
 import { cancelAudioRecording, startAudioRecording, stopAudioRecording } from './audio-recording'
 import './audio-recording.css'
 import './ChatMessage.css'
 
 // api
-import chatmessageApi from '@/api/chatmessage'
-import chatflowsApi from '@/api/chatflows'
-import predictionApi from '@/api/prediction'
-import vectorstoreApi from '@/api/vectorstore'
 import attachmentsApi from '@/api/attachments'
+import chatflowsApi from '@/api/chatflows'
+import chatmessageApi from '@/api/chatmessage'
 import chatmessagefeedbackApi from '@/api/chatmessagefeedback'
 import leadsApi from '@/api/lead'
+import predictionApi from '@/api/prediction'
+import vectorstoreApi from '@/api/vectorstore'
 
 // Hooks
 import useApi from '@/hooks/useApi'
 
 // Const
+import { closeSnackbar as closeSnackbarAction, enqueueSnackbar as enqueueSnackbarAction } from '@/store/actions'
 import { baseURL, maxScroll } from '@/store/constant'
-import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
 
 // Utils
-import { isValidURL, removeDuplicateURL, setLocalStorageChatflow, getLocalStorageChatflow } from '@/utils/genericHelper'
-import useNotifier from '@/utils/useNotifier'
 import FollowUpPromptsCard from '@/ui-component/cards/FollowUpPromptsCard'
+import { getLocalStorageChatflow, setLocalStorageChatflow } from '@/utils/genericHelper'
+import useNotifier from '@/utils/useNotifier'
 
 // History
 import { ChatInputHistory } from './ChatInputHistory'
@@ -1504,7 +1494,42 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
       )
     }
   }
+  const [avatarBase64, setAvatarBase64] = useState(null)
 
+  const username = localStorage.getItem('username')
+  const password = localStorage.getItem('password')
+
+  useEffect(() => {
+    const cachedAvatar = localStorage.getItem(`avatar_${chatflowid}`)
+    if (cachedAvatar) {
+      setAvatarBase64(cachedAvatar)
+    }
+
+    const fetchAvatar = async () => {
+      try {
+        const response = await axios.get(`/api/v1/chatflows/${chatflowid}`, {
+          params: { chatflowid },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: username && password ? `Basic ${btoa(`${username}:${password}`)}` : undefined,
+            'x-request-from': 'internal'
+          }
+        })
+
+        const newAvatarBase64 = response.data.assistantAvatar
+
+        if (newAvatarBase64 && newAvatarBase64 !== cachedAvatar) {
+          localStorage.setItem(`avatar_${chatflowid}`, newAvatarBase64)
+          setAvatarBase64(newAvatarBase64)
+          console.log('Avatar updated successfully')
+        }
+      } catch (error) {
+        console.error('Error fetching avatar:', error)
+      }
+    }
+
+    fetchAvatar()
+  }, [chatflowid, username, password])
   return (
     <div onDragEnter={handleDrag}>
       {isDragActive && (
@@ -1530,28 +1555,31 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
           {messages &&
             messages.map((message, index) => {
               return (
-                // The latest message sent by the user will be animated while waiting for a response
                 <Box
                   sx={{
-                    background: message.type === 'apiMessage' || message.type === 'leadCaptureMessage' ? theme.palette.asyncSelect.main : ''
+                    background: message.type === 'apiMessage' ? theme.palette.asyncSelect.main : '',
+                    py: '1rem',
+                    px: '1.5rem'
                   }}
                   key={index}
-                  style={{ display: 'flex' }}
-                  className={
-                    message.type === 'userMessage' && loading && index === messages.length - 1
-                      ? customization.isDarkMode
-                        ? 'usermessagewaiting-dark'
-                        : 'usermessagewaiting-light'
-                      : message.type === 'usermessagewaiting'
-                      ? 'apimessage'
-                      : 'usermessage'
-                  }
+                  style={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}
                 >
-                  {/* Display the correct icon depending on the message type */}
-                  {message.type === 'apiMessage' || message.type === 'leadCaptureMessage' ? (
-                    <img src={robotPNG} alt='AI' width='30' height='30' className='boticon' />
+                  {/* Hiển thị ảnh avatar nếu có */}
+                  {message.type === 'apiMessage' ? (
+                    avatarBase64 ? (
+                      <img style={{ marginLeft: '10px' }} src={avatarBase64} alt='AI' width='25' height='25' className='boticon' />
+                    ) : (
+                      <img
+                        style={{ marginLeft: '10px' }}
+                        src={robotPNG} // Ảnh mặc định nếu không có avatar
+                        alt='AI'
+                        width='25'
+                        height='25'
+                        className='boticon'
+                      />
+                    )
                   ) : (
-                    <img src={userPNG} alt='Me' width='30' height='30' className='usericon' />
+                    <img style={{ marginLeft: '10px' }} src={userPNG} alt='Me' width='25' height='25' className='usericon' />
                   )}
                   <div
                     style={{
@@ -1575,480 +1603,10 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
                         })}
                       </div>
                     )}
-                    {message.agentReasoning && (
-                      <div style={{ display: 'block', flexDirection: 'row', width: '100%' }}>
-                        {message.agentReasoning.map((agent, index) => {
-                          return agent.nextAgent ? (
-                            <Card
-                              key={index}
-                              sx={{
-                                border: customization.isDarkMode ? 'none' : '1px solid #e0e0e0',
-                                borderRadius: `${customization.borderRadius}px`,
-                                background: customization.isDarkMode
-                                  ? `linear-gradient(to top, #303030, #212121)`
-                                  : `linear-gradient(to top, #f6f3fb, #f2f8fc)`,
-                                mb: 1
-                              }}
-                            >
-                              <CardContent>
-                                <Stack
-                                  sx={{
-                                    alignItems: 'center',
-                                    justifyContent: 'flex-start',
-                                    width: '100%'
-                                  }}
-                                  flexDirection='row'
-                                >
-                                  <Box sx={{ height: 'auto', pr: 1 }}>
-                                    <img
-                                      style={{
-                                        objectFit: 'cover',
-                                        height: '35px',
-                                        width: 'auto'
-                                      }}
-                                      src={nextAgentGIF}
-                                      alt='agentPNG'
-                                    />
-                                  </Box>
-                                  <div>{agent.nextAgent}</div>
-                                </Stack>
-                              </CardContent>
-                            </Card>
-                          ) : (
-                            <Card
-                              key={index}
-                              sx={{
-                                border: customization.isDarkMode ? 'none' : '1px solid #e0e0e0',
-                                borderRadius: `${customization.borderRadius}px`,
-                                background: customization.isDarkMode
-                                  ? `linear-gradient(to top, #303030, #212121)`
-                                  : `linear-gradient(to top, #f6f3fb, #f2f8fc)`,
-                                mb: 1
-                              }}
-                            >
-                              <CardContent>
-                                <Stack
-                                  sx={{
-                                    alignItems: 'center',
-                                    justifyContent: 'flex-start',
-                                    width: '100%'
-                                  }}
-                                  flexDirection='row'
-                                >
-                                  <Box sx={{ height: 'auto', pr: 1 }}>
-                                    <img
-                                      style={{
-                                        objectFit: 'cover',
-                                        height: '25px',
-                                        width: 'auto'
-                                      }}
-                                      src={getAgentIcon(agent.nodeName, agent.instructions)}
-                                      alt='agentPNG'
-                                    />
-                                  </Box>
-                                  <div>{agent.agentName}</div>
-                                </Stack>
-                                {agent.usedTools && agent.usedTools.length > 0 && (
-                                  <div
-                                    style={{
-                                      display: 'block',
-                                      flexDirection: 'row',
-                                      width: '100%'
-                                    }}
-                                  >
-                                    {agent.usedTools.map((tool, index) => {
-                                      return tool !== null ? (
-                                        <Chip
-                                          size='small'
-                                          key={index}
-                                          label={tool.tool}
-                                          component='a'
-                                          sx={{ mr: 1, mt: 1 }}
-                                          variant='outlined'
-                                          clickable
-                                          icon={<IconTool size={15} />}
-                                          onClick={() => onSourceDialogClick(tool, 'Used Tools')}
-                                        />
-                                      ) : null
-                                    })}
-                                  </div>
-                                )}
-                                {agent.state && Object.keys(agent.state).length > 0 && (
-                                  <div
-                                    style={{
-                                      display: 'block',
-                                      flexDirection: 'row',
-                                      width: '100%'
-                                    }}
-                                  >
-                                    <Chip
-                                      size='small'
-                                      label={'State'}
-                                      component='a'
-                                      sx={{ mr: 1, mt: 1 }}
-                                      variant='outlined'
-                                      clickable
-                                      icon={<IconDeviceSdCard size={15} />}
-                                      onClick={() => onSourceDialogClick(agent.state, 'State')}
-                                    />
-                                  </div>
-                                )}
-                                {agent.artifacts && (
-                                  <div
-                                    style={{
-                                      display: 'flex',
-                                      flexWrap: 'wrap',
-                                      flexDirection: 'row',
-                                      width: '100%',
-                                      gap: '8px'
-                                    }}
-                                  >
-                                    {agentReasoningArtifacts(agent.artifacts).map((item, index) => {
-                                      return item !== null ? <>{renderArtifacts(item, index, true)}</> : null
-                                    })}
-                                  </div>
-                                )}
-                                {agent.messages.length > 0 && (
-                                  <MemoizedReactMarkdown
-                                    remarkPlugins={[remarkGfm, remarkMath]}
-                                    rehypePlugins={[rehypeMathjax, rehypeRaw]}
-                                    components={{
-                                      code({ inline, className, children, ...props }) {
-                                        const match = /language-(\w+)/.exec(className || '')
-                                        return !inline ? (
-                                          <CodeBlock
-                                            key={Math.random()}
-                                            chatflowid={chatflowid}
-                                            isDialog={isDialog}
-                                            language={(match && match[1]) || ''}
-                                            value={String(children).replace(/\n$/, '')}
-                                            {...props}
-                                          />
-                                        ) : (
-                                          <code className={className} {...props}>
-                                            {children}
-                                          </code>
-                                        )
-                                      }
-                                    }}
-                                  >
-                                    {agent.messages.length > 1 ? agent.messages.join('\\n') : agent.messages[0]}
-                                  </MemoizedReactMarkdown>
-                                )}
-                                {agent.instructions && <p>{agent.instructions}</p>}
-                                {agent.messages.length === 0 && !agent.instructions && <p>Finished</p>}
-                                {agent.sourceDocuments && agent.sourceDocuments.length > 0 && (
-                                  <div
-                                    style={{
-                                      display: 'block',
-                                      flexDirection: 'row',
-                                      width: '100%'
-                                    }}
-                                  >
-                                    {removeDuplicateURL(agent).map((source, index) => {
-                                      const URL =
-                                        source && source.metadata && source.metadata.source ? isValidURL(source.metadata.source) : undefined
-                                      return (
-                                        <Chip
-                                          size='small'
-                                          key={index}
-                                          label={getLabel(URL, source) || ''}
-                                          component='a'
-                                          sx={{ mr: 1, mb: 1 }}
-                                          variant='outlined'
-                                          clickable
-                                          onClick={() => (URL ? onURLClick(source.metadata.source) : onSourceDialogClick(source))}
-                                        />
-                                      )
-                                    })}
-                                  </div>
-                                )}
-                              </CardContent>
-                            </Card>
-                          )
-                        })}
-                      </div>
-                    )}
-                    {message.usedTools && (
-                      <div
-                        style={{
-                          display: 'block',
-                          flexDirection: 'row',
-                          width: '100%'
-                        }}
-                      >
-                        {message.usedTools.map((tool, index) => {
-                          return tool ? (
-                            <Chip
-                              size='small'
-                              key={index}
-                              label={tool.tool}
-                              component='a'
-                              sx={{ mr: 1, mt: 1 }}
-                              variant='outlined'
-                              clickable
-                              icon={<IconTool size={15} />}
-                              onClick={() => onSourceDialogClick(tool, 'Used Tools')}
-                            />
-                          ) : null
-                        })}
-                      </div>
-                    )}
-                    {message.artifacts && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          flexDirection: 'column',
-                          width: '100%'
-                        }}
-                      >
-                        {message.artifacts.map((item, index) => {
-                          return item !== null ? <>{renderArtifacts(item, index)}</> : null
-                        })}
-                      </div>
-                    )}
+                    {/* Các phần tử khác của message */}
                     <div className='markdownanswer'>
-                      {message.type === 'leadCaptureMessage' && !getLocalStorageChatflow(chatflowid)?.lead && leadsConfig.status ? (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 2,
-                            marginTop: 2
-                          }}
-                        >
-                          <Typography sx={{ lineHeight: '1.5rem', whiteSpace: 'pre-line' }}>
-                            {leadsConfig.title || 'Let us know where we can reach you:'}
-                          </Typography>
-                          <form
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '8px',
-                              width: isDialog ? '50%' : '100%'
-                            }}
-                            onSubmit={handleLeadCaptureSubmit}
-                          >
-                            {leadsConfig.name && (
-                              <OutlinedInput
-                                id='leadName'
-                                type='text'
-                                fullWidth
-                                placeholder='Name'
-                                name='leadName'
-                                value={leadName}
-                                // eslint-disable-next-line
-                                autoFocus={true}
-                                onChange={(e) => setLeadName(e.target.value)}
-                              />
-                            )}
-                            {leadsConfig.email && (
-                              <OutlinedInput
-                                id='leadEmail'
-                                type='email'
-                                fullWidth
-                                placeholder='Email Address'
-                                name='leadEmail'
-                                value={leadEmail}
-                                onChange={(e) => setLeadEmail(e.target.value)}
-                              />
-                            )}
-                            {leadsConfig.phone && (
-                              <OutlinedInput
-                                id='leadPhone'
-                                type='number'
-                                fullWidth
-                                placeholder='Phone Number'
-                                name='leadPhone'
-                                value={leadPhone}
-                                onChange={(e) => setLeadPhone(e.target.value)}
-                              />
-                            )}
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center'
-                              }}
-                            >
-                              <Button variant='outlined' fullWidth type='submit' sx={{ borderRadius: '20px' }}>
-                                {isLeadSaving ? 'Saving...' : 'Save'}
-                              </Button>
-                            </Box>
-                          </form>
-                        </Box>
-                      ) : (
-                        <>
-                          {/* Messages are being rendered in Markdown format */}
-                          <MemoizedReactMarkdown
-                            remarkPlugins={[remarkGfm, remarkMath]}
-                            rehypePlugins={[rehypeMathjax, rehypeRaw]}
-                            components={{
-                              code({ inline, className, children, ...props }) {
-                                const match = /language-(\w+)/.exec(className || '')
-                                return !inline ? (
-                                  <CodeBlock
-                                    key={Math.random()}
-                                    chatflowid={chatflowid}
-                                    isDialog={isDialog}
-                                    language={(match && match[1]) || ''}
-                                    value={String(children).replace(/\n$/, '')}
-                                    {...props}
-                                  />
-                                ) : (
-                                  <code className={className} {...props}>
-                                    {children}
-                                  </code>
-                                )
-                              }
-                            }}
-                          >
-                            {message.message}
-                          </MemoizedReactMarkdown>
-                        </>
-                      )}
+                      <MemoizedReactMarkdown>{message.message}</MemoizedReactMarkdown>
                     </div>
-                    {message.fileAnnotations && (
-                      <div
-                        style={{
-                          display: 'block',
-                          flexDirection: 'row',
-                          width: '100%',
-                          marginBottom: '8px'
-                        }}
-                      >
-                        {message.fileAnnotations.map((fileAnnotation, index) => {
-                          return (
-                            <Button
-                              sx={{
-                                fontSize: '0.85rem',
-                                textTransform: 'none',
-                                mb: 1
-                              }}
-                              key={index}
-                              variant='outlined'
-                              onClick={() => downloadFile(fileAnnotation)}
-                              endIcon={<IconDownload color={theme.palette.primary.main} />}
-                            >
-                              {fileAnnotation.fileName}
-                            </Button>
-                          )
-                        })}
-                      </div>
-                    )}
-                    {message.sourceDocuments && (
-                      <div
-                        style={{
-                          display: 'block',
-                          flexDirection: 'row',
-                          width: '100%',
-                          marginBottom: '8px'
-                        }}
-                      >
-                        {removeDuplicateURL(message).map((source, index) => {
-                          const URL = source.metadata && source.metadata.source ? isValidURL(source.metadata.source) : undefined
-                          return (
-                            <Chip
-                              size='small'
-                              key={index}
-                              label={getLabel(URL, source) || ''}
-                              component='a'
-                              sx={{ mr: 1, mb: 1 }}
-                              variant='outlined'
-                              clickable
-                              onClick={() => (URL ? onURLClick(source.metadata.source) : onSourceDialogClick(source))}
-                            />
-                          )
-                        })}
-                      </div>
-                    )}
-                    {message.action && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          flexDirection: 'row',
-                          width: '100%',
-                          gap: '8px',
-                          marginBottom: '8px'
-                        }}
-                      >
-                        {(message.action.elements || []).map((elem, index) => {
-                          return (
-                            <>
-                              {elem.type === 'approve-button' && elem.label === 'Yes' ? (
-                                <Button
-                                  sx={{
-                                    width: 'max-content',
-                                    borderRadius: '20px',
-                                    background: customization.isDarkMode ? 'transparent' : 'white'
-                                  }}
-                                  variant='outlined'
-                                  color='success'
-                                  key={index}
-                                  startIcon={<IconCheck />}
-                                  onClick={() => handleActionClick(elem, message.action)}
-                                >
-                                  {elem.label}
-                                </Button>
-                              ) : elem.type === 'reject-button' && elem.label === 'No' ? (
-                                <Button
-                                  sx={{
-                                    width: 'max-content',
-                                    borderRadius: '20px',
-                                    background: customization.isDarkMode ? 'transparent' : 'white'
-                                  }}
-                                  variant='outlined'
-                                  color='error'
-                                  key={index}
-                                  startIcon={<IconX />}
-                                  onClick={() => handleActionClick(elem, message.action)}
-                                >
-                                  {elem.label}
-                                </Button>
-                              ) : (
-                                <Button
-                                  sx={{ width: 'max-content', borderRadius: '20px', background: 'white' }}
-                                  variant='outlined'
-                                  key={index}
-                                  onClick={() => handleActionClick(elem, message.action)}
-                                >
-                                  {elem.label}
-                                </Button>
-                              )}
-                            </>
-                          )
-                        })}
-                      </div>
-                    )}
-                    {message.type === 'apiMessage' && message.id && chatFeedbackStatus ? (
-                      <>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'start',
-                            gap: 1
-                          }}
-                        >
-                          <CopyToClipboardButton onClick={() => copyMessageToClipboard(message.message)} />
-                          {!message.feedback || message.feedback.rating === '' || message.feedback.rating === 'THUMBS_UP' ? (
-                            <ThumbsUpButton
-                              isDisabled={message.feedback && message.feedback.rating === 'THUMBS_UP'}
-                              rating={message.feedback ? message.feedback.rating : ''}
-                              onClick={() => onThumbsUpClick(message.id)}
-                            />
-                          ) : null}
-                          {!message.feedback || message.feedback.rating === '' || message.feedback.rating === 'THUMBS_DOWN' ? (
-                            <ThumbsDownButton
-                              isDisabled={message.feedback && message.feedback.rating === 'THUMBS_DOWN'}
-                              rating={message.feedback ? message.feedback.rating : ''}
-                              onClick={() => onThumbsDownClick(message.id)}
-                            />
-                          ) : null}
-                        </Box>
-                      </>
-                    ) : null}
                   </div>
                 </Box>
               )
