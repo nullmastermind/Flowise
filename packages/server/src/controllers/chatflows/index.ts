@@ -195,7 +195,7 @@ export const fetchAssistantAvatar = async (req: Request, res: Response) => {
 
   if (!chatflowid || typeof chatflowid !== 'string') {
     return res.status(400).json({
-      message: 'chatflowid là bắt buộc và phải là chuỗi hợp lệ.'
+      message: 'chatflowid is required and must be a valid string.'
     })
   }
 
@@ -209,13 +209,13 @@ export const fetchAssistantAvatar = async (req: Request, res: Response) => {
       })
     } else {
       return res.status(404).json({
-        message: 'Không tìm thấy avatar cho chatflowid đã cung cấp.'
+        message: 'No avatar found for the provided chatflowid.'
       })
     }
   } catch (error) {
     console.error('Error fetching assistant avatar:', error)
     return res.status(500).json({
-      message: 'Đã xảy ra lỗi khi truy vấn avatar.',
+      message: 'An error occurred while querying avatar.',
       error: error
     })
   }

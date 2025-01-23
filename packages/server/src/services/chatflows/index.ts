@@ -402,10 +402,8 @@ export const getAssistantAvatar = async (chatflowid: string): Promise<string | n
   const appServer = getRunningExpressApp()
   const repository = appServer.AppDataSource.getRepository(ChatFlow)
 
-  // Truy vấn bản ghi theo ID
   const record = await repository.findOneBy({ id: chatflowid })
 
-  // Nếu tìm thấy và có assistantAvatar, trả về dữ liệu ảnh dưới dạng base64
   return record?.assistantAvatar ?? null
 }
 
