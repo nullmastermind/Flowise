@@ -32,6 +32,7 @@ export interface IChatFlow {
   apiConfig?: string
   category?: string
   type?: ChatflowType
+  welcomeMessage?: string
 }
 
 export interface IChatMessage {
@@ -225,8 +226,19 @@ export interface IncomingInput {
   leadEmail?: string
   history?: IMessage[]
   action?: IAction
+  stored?: Istored
 }
 
+export interface Istored {
+  deviceId: string
+  userInfo?: {
+    name: string
+    phoneNumber: string
+  }
+  chatwoot?: {
+    conversation_id: string | null
+  }
+}
 export interface IActiveChatflows {
   [key: string]: {
     startingNodes: IReactFlowNode[]
@@ -313,6 +325,13 @@ export interface IUser {
   password?: string
   createdDate?: Date
   updatedDate?: Date
+}
+
+export interface IChatRecord {
+  id: string
+  chat_history: { message: string }[]
+  device_id?: string
+  chatflowid: string
 }
 
 // DocumentStore related
