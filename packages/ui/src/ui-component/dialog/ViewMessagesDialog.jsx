@@ -1,53 +1,53 @@
+import axios from 'axios'
+import { cloneDeep } from 'lodash'
+import moment from 'moment'
+import PropTypes from 'prop-types'
+import { forwardRef, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { useState, useEffect, forwardRef } from 'react'
-import PropTypes from 'prop-types'
-import moment from 'moment'
 import rehypeMathjax from 'rehype-mathjax'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
-import axios from 'axios'
-import { cloneDeep } from 'lodash'
 
 // material-ui
 import {
-  Button,
-  Tooltip,
-  ListItemButton,
   Box,
-  Stack,
+  Button,
+  Card,
+  CardContent,
+  CardMedia,
+  Checkbox,
+  Chip,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogTitle,
-  ListItem,
-  ListItemText,
-  Chip,
-  Card,
-  CardMedia,
-  CardContent,
   FormControlLabel,
-  Checkbox,
-  DialogActions
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Stack,
+  Tooltip
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import DatePicker from 'react-datepicker'
 
-import robotPNG from '@/assets/images/ezgif.com-resize_crop_64.gif'
 import userPNG from '@/assets/images/account.png'
+import robotPNG from '@/assets/images/ezgif.com-resize_crop_64.gif'
 import msgEmptySVG from '@/assets/images/message_empty.svg'
 import multiagent_supervisorPNG from '@/assets/images/multiagent_supervisor.png'
 import multiagent_workerPNG from '@/assets/images/multiagent_worker.png'
-import { IconTool, IconDeviceSdCard, IconFileExport, IconEraser, IconX, IconDownload, IconPaperclip } from '@tabler/icons-react'
+import { IconDeviceSdCard, IconDownload, IconEraser, IconFileExport, IconPaperclip, IconTool, IconX } from '@tabler/icons-react'
 
 // Project import
-import { MemoizedReactMarkdown } from '@/ui-component/markdown/MemoizedReactMarkdown'
-import { CodeBlock } from '@/ui-component/markdown/CodeBlock'
-import SourceDocDialog from '@/ui-component/dialog/SourceDocDialog'
-import { MultiDropdown } from '@/ui-component/dropdown/MultiDropdown'
 import { StyledButton } from '@/ui-component/button/StyledButton'
 import StatsCard from '@/ui-component/cards/StatsCard'
+import SourceDocDialog from '@/ui-component/dialog/SourceDocDialog'
+import { MultiDropdown } from '@/ui-component/dropdown/MultiDropdown'
 import Feedback from '@/ui-component/extended/Feedback'
+import { CodeBlock } from '@/ui-component/markdown/CodeBlock'
+import { MemoizedReactMarkdown } from '@/ui-component/markdown/MemoizedReactMarkdown'
 
 // store
 import { HIDE_CANVAS_DIALOG, SHOW_CANVAS_DIALOG } from '@/store/actions'
@@ -59,11 +59,11 @@ import useApi from '@/hooks/useApi'
 import useConfirm from '@/hooks/useConfirm'
 
 // Utils
+import { baseURL } from '@/store/constant'
 import { getOS, isValidURL, removeDuplicateURL } from '@/utils/genericHelper'
 import useNotifier from '@/utils/useNotifier'
-import { baseURL } from '@/store/constant'
 
-import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
+import { closeSnackbar as closeSnackbarAction, enqueueSnackbar as enqueueSnackbarAction } from '@/store/actions'
 
 import '@/views/chatmessage/ChatMessage.css'
 import 'react-datepicker/dist/react-datepicker.css'

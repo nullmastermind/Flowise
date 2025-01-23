@@ -1,4 +1,5 @@
 import AnalyseFlow from '@/ui-component/extended/AnalyseFlow'
+import AssistantAvatar from '@/ui-component/extended/AssistantAvatar'
 import ChatFeedback from '@/ui-component/extended/ChatFeedback'
 import FileUpload from '@/ui-component/extended/FileUpload'
 import FollowUpPrompts from '@/ui-component/extended/FollowUpPrompts'
@@ -49,6 +50,10 @@ const CHATFLOW_CONFIGURATION_TABS = [
   {
     label: 'File Upload',
     id: 'fileUpload'
+  },
+  {
+    label: 'Assistant Avatar',
+    id: 'assistantAvatar'
   }
 ]
 
@@ -139,6 +144,7 @@ const ChatflowConfigurationDialog = ({ show, dialogProps, onCancel }) => {
             {item.id === 'analyseChatflow' ? <AnalyseFlow dialogProps={dialogProps} /> : null}
             {item.id === 'leads' ? <Leads dialogProps={dialogProps} /> : null}
             {item.id === 'fileUpload' ? <FileUpload dialogProps={dialogProps} /> : null}
+            {item.id === 'assistantAvatar' ? <AssistantAvatar dialogProps={dialogProps} /> : null}
           </TabPanel>
         ))}
       </DialogContent>

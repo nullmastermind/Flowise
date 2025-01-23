@@ -10,11 +10,10 @@ import { Box, FormControl, TextField } from '@mui/material'
 import useNotifier from '@/utils/useNotifier'
 
 // API
-import axios from 'axios'
 
 // Project import
+import chatflowsApi from '@/api/chatflows'
 import { StyledButton } from '@/ui-component/button/StyledButton'
-
 const Welcome = ({ dialogProps }) => {
   const dispatch = useDispatch()
 
@@ -38,8 +37,7 @@ const Welcome = ({ dialogProps }) => {
     }
 
     try {
-      const response = await axios.post(`/api/v1/welcome-message/${dialogProps.chatflow.id}`, {
-        chatflowid: dialogProps.chatflow.id,
+      const response = await chatflowsApi.updateChatflow(dialogProps.chatflow.id, {
         welcomeMessage: inputValue.trim()
       })
       if (response.data) {

@@ -61,4 +61,7 @@ export class ChatFlow implements IChatFlow {
   @Column({ type: 'timestamp' })
   @UpdateDateColumn()
   updatedDate: Date
+
+  @Column({ nullable: true, type: 'text' })
+  assistantAvatar?: string
 }
