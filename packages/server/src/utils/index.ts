@@ -1,6 +1,19 @@
-import path from 'path'
+import { randomBytes } from 'crypto'
+import { AES, enc } from 'crypto-js'
+import {
+  convertChatHistoryToText,
+  FlowiseMemory,
+  getEncryptionKeyPath,
+  getInputVariables,
+  handleEscapeCharacters,
+  ICommonObject,
+  IDatabaseEntity,
+  IFileUpload,
+  IMessage
+} from 'flowise-components'
 import fs from 'fs'
-import logger from './logger'
+import { cloneDeep, get, isEqual } from 'lodash'
+import path from 'path'
 import {
   IChatFlow,
   IComponentCredentials,
@@ -9,6 +22,7 @@ import {
   ICredentialReqBody,
   IDepthQueue,
   IExploredNode,
+  IncomingInput,
   INodeData,
   INodeDependencies,
   INodeDirectedGraph,
@@ -18,37 +32,23 @@ import {
   IReactFlowEdge,
   IReactFlowNode,
   IVariableDict,
-  IVariableOverride,
-  IncomingInput
+  IVariableOverride
 } from '../Interface'
-import { cloneDeep, get, isEqual } from 'lodash'
-import {
-  convertChatHistoryToText,
-  getInputVariables,
-  handleEscapeCharacters,
-  getEncryptionKeyPath,
-  ICommonObject,
-  IDatabaseEntity,
-  IMessage,
-  FlowiseMemory,
-  IFileUpload
-} from 'flowise-components'
-import { randomBytes } from 'crypto'
-import { AES, enc } from 'crypto-js'
+import logger from './logger'
 
+import { StatusCodes } from 'http-status-codes'
+import { DataSource } from 'typeorm'
+import { CachePool } from '../CachePool'
+import { Assistant } from '../database/entities/Assistant'
 import { ChatFlow } from '../database/entities/ChatFlow'
 import { ChatMessage } from '../database/entities/ChatMessage'
 import { Credential } from '../database/entities/Credential'
-import { Tool } from '../database/entities/Tool'
-import { Assistant } from '../database/entities/Assistant'
-import { Lead } from '../database/entities/Lead'
-import { DataSource } from 'typeorm'
-import { CachePool } from '../CachePool'
-import { Variable } from '../database/entities/Variable'
 import { DocumentStore } from '../database/entities/DocumentStore'
 import { DocumentStoreFileChunk } from '../database/entities/DocumentStoreFileChunk'
+import { Lead } from '../database/entities/Lead'
+import { Tool } from '../database/entities/Tool'
+import { Variable } from '../database/entities/Variable'
 import { InternalFlowiseError } from '../errors/internalFlowiseError'
-import { StatusCodes } from 'http-status-codes'
 
 const QUESTION_VAR_PREFIX = 'question'
 const FILE_ATTACHMENT_PREFIX = 'file_attachment'

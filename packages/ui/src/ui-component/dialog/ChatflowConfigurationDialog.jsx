@@ -1,18 +1,24 @@
+import AnalyseFlow from '@/ui-component/extended/AnalyseFlow'
+import AssistantAvatar from '@/ui-component/extended/AssistantAvatar'
+import ChatFeedback from '@/ui-component/extended/ChatFeedback'
+import FileUpload from '@/ui-component/extended/FileUpload'
+import FollowUpPrompts from '@/ui-component/extended/FollowUpPrompts'
+import Leads from '@/ui-component/extended/Leads'
+import Security from '@/ui-component/extended/Security'
+import SpeechToText from '@/ui-component/extended/SpeechToText'
+import StarterPrompts from '@/ui-component/extended/StarterPrompts'
+import Welcome from '@/ui-component/extended/Welcome'
+import { Box, Dialog, DialogContent, DialogTitle, Tab, Tabs } from '@mui/material'
+import { tabsClasses } from '@mui/material/Tabs'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Box, Dialog, DialogContent, DialogTitle, Tabs, Tab } from '@mui/material'
-import { tabsClasses } from '@mui/material/Tabs'
-import SpeechToText from '@/ui-component/extended/SpeechToText'
-import Security from '@/ui-component/extended/Security'
-import ChatFeedback from '@/ui-component/extended/ChatFeedback'
-import AnalyseFlow from '@/ui-component/extended/AnalyseFlow'
-import StarterPrompts from '@/ui-component/extended/StarterPrompts'
-import Leads from '@/ui-component/extended/Leads'
-import FollowUpPrompts from '@/ui-component/extended/FollowUpPrompts'
-import FileUpload from '@/ui-component/extended/FileUpload'
 
 const CHATFLOW_CONFIGURATION_TABS = [
+  {
+    label: 'Welcome',
+    id: 'welcome'
+  },
   {
     label: 'Security',
     id: 'security'
@@ -44,6 +50,10 @@ const CHATFLOW_CONFIGURATION_TABS = [
   {
     label: 'File Upload',
     id: 'fileUpload'
+  },
+  {
+    label: 'Assistant Avatar',
+    id: 'assistantAvatar'
   }
 ]
 
@@ -125,6 +135,7 @@ const ChatflowConfigurationDialog = ({ show, dialogProps, onCancel }) => {
         </Tabs>
         {CHATFLOW_CONFIGURATION_TABS.map((item, index) => (
           <TabPanel key={index} value={tabValue} index={index}>
+            {item.id === 'welcome' && <Welcome dialogProps={dialogProps} />}
             {item.id === 'security' && <Security dialogProps={dialogProps} />}
             {item.id === 'conversationStarters' ? <StarterPrompts dialogProps={dialogProps} /> : null}
             {item.id === 'followUpPrompts' ? <FollowUpPrompts dialogProps={dialogProps} /> : null}
@@ -133,6 +144,7 @@ const ChatflowConfigurationDialog = ({ show, dialogProps, onCancel }) => {
             {item.id === 'analyseChatflow' ? <AnalyseFlow dialogProps={dialogProps} /> : null}
             {item.id === 'leads' ? <Leads dialogProps={dialogProps} /> : null}
             {item.id === 'fileUpload' ? <FileUpload dialogProps={dialogProps} /> : null}
+            {item.id === 'assistantAvatar' ? <AssistantAvatar dialogProps={dialogProps} /> : null}
           </TabPanel>
         ))}
       </DialogContent>
