@@ -24,7 +24,18 @@ export class PostgresSaver extends BaseCheckpointSaver implements MemoryMethods 
     this.config = config
     const { datasourceOptions, threadId } = config
     this.threadId = threadId
-    this.datasource = new DataSource(datasourceOptions)
+    this.datasource = new DataSource({
+      // Connection pool settings
+      poolSize: 20,
+      connectTimeoutMS: 10000,
+      extra: {
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000
+      },
+      //
+      ...datasourceOptions
+    })
   }
 
   private async setup(): Promise<void> {
