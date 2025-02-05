@@ -9,6 +9,7 @@ import 'dccxx-s3-explorer/dist/style.css'
 import { useSelector } from 'react-redux'
 
 import.meta.env.VITE_DOCUMENT_STORE_BASE_URL = import.meta.env.VITE_DOCUMENT_STORE_BASE_URL || 'https://s3-explorer.unidev.studio.ai.vn'
+window.VITE_DOCUMENT_STORE_BASE_URL = import.meta.env.VITE_DOCUMENT_STORE_BASE_URL
 
 export const Input = ({ inputParam, value, nodes, edges, nodeId, onChange, disabled = false }) => {
   const user = useSelector((state) => state.user)
