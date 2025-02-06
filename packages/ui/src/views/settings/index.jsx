@@ -24,7 +24,9 @@ const Settings = ({ chatflow, isSettingsOpen, anchorEl, isAgentCanvas, onSetting
   const user = useSelector((state) => state.user)
   const theme = useTheme()
   const [isAdminPage, setIsAdminPage] = useState(
-    pathname === '/canvas' || pathname === '/agentcanvas' ? true : user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN' ? true : false
+    pathname === '/canvas' || pathname === '/agentcanvas'
+      ? true
+      : user?.role === 'MASTER_ADMIN' || (user?.role === 'ADMIN' && user.groupname === chatflow?.user?.groupname)
   )
   const [settingsMenu, setSettingsMenu] = useState([])
   const customization = useSelector((state) => state.customization)
@@ -73,6 +75,20 @@ const Settings = ({ chatflow, isSettingsOpen, anchorEl, isAgentCanvas, onSetting
       setSettingsMenu(settingsMenu)
     }
   }, [chatflow, isAgentCanvas, isAdminPage])
+
+  useEffect(() => {
+    if (
+      user?.role === 'MASTER_ADMIN' ||
+      (user?.role === 'USER' && chatflow?.userId === user?.id) ||
+      (user?.role === 'ADMIN' && user.groupname === chatflow?.user?.groupname) ||
+      pathname === '/canvas' ||
+      pathname === '/agentcanvas'
+    ) {
+      setIsAdminPage(true)
+    } else {
+      setIsAdminPage(false)
+    }
+  }, [chatflow, user])
 
   useEffect(() => {
     setOpen(isSettingsOpen)
