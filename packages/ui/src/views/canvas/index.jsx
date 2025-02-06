@@ -79,7 +79,7 @@ const Canvas = () => {
   const [canvasDataStore, setCanvasDataStore] = useState(canvas)
   const [chatflow, setChatflow] = useState(null)
   const [isAdminPage, setIsAdminPage] = useState(
-    pathname === '/canvas' || pathname === '/agentcanvas' ? true : user?.role === 'ADMIN' ? true : false
+    pathname === '/canvas' || pathname === '/agentcanvas' ? true : user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN' ? true : false
   )
   const { reactFlowInstance, setReactFlowInstance } = useContext(flowContext)
 
@@ -427,10 +427,10 @@ const Canvas = () => {
   useEffect(() => {
     if (getSpecificChatflowApi?.data) {
       const chatflow = getSpecificChatflowApi.data
-      if (user?.role !== 'ADMIN' && chatflow?.userId === user?.id) {
+      if (user?.role !== 'ADMIN' || user?.role !== 'MASTER_ADMIN') {
         setIsAdminPage(true)
       }
-      if (!chatflow?.isPublic && user?.role !== 'ADMIN' && chatflow?.userId !== user?.id) {
+      if (!chatflow?.isPublic && user?.role !== 'ADMIN' && user?.role !== 'MASTER_ADMIN') {
         return navigate(isAgentCanvas ? '/agentflows' : '/')
       }
 

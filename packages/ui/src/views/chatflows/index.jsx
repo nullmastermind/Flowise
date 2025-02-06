@@ -31,7 +31,7 @@ import RenderContent from './RenderContent'
 const Chatflows = () => {
   const [value, setValue] = useState(0)
   const user = useSelector((state) => state.user)
-  const isAdmin = user?.role === 'ADMIN'
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN'
   const isLogin = Boolean(user?.id)
   const navigate = useNavigate()
   const theme = useTheme()

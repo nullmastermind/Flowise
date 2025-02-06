@@ -88,7 +88,7 @@ const CanvasNode = ({ data }) => {
   }, [canvas.componentNodes, data.name, data.version])
 
   useEffect(() => {
-    if (canvas?.chatflow && user?.role !== 'ADMIN' && canvas?.chatflow?.userId === user?.id && !isAdminPage) {
+    if (canvas?.chatflow && (user?.role !== 'ADMIN' || user?.role !== 'MASTER_ADMIN') && !isAdminPage) {
       setIsAdminPage(true)
     }
   }, [canvas, isAdminPage])

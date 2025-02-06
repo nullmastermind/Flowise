@@ -14,7 +14,7 @@ import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { utilGetUploadsConfig } from '../../utils/getUploadsConfig'
 import logger from '../../utils/logger'
 import { FLOWISE_METRIC_COUNTERS, FLOWISE_COUNTER_STATUS } from '../../Interface.Metrics'
-import { QueryRunner } from 'typeorm'
+import { QueryRunner, In } from 'typeorm'
 import { User } from '../../database/entities/User'
 
 // Check if chatflow valid for streaming
@@ -107,25 +107,51 @@ const getControlChatflowsOfAdmin = async (req: any): Promise<any[]> => {
   try {
     const { user } = req
     if (!user.id) {
-      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'User not found')
     }
 
     const appServer = getRunningExpressApp()
-    const foundUser = await appServer.AppDataSource.getRepository(User).findOneBy({ id: user.id })
+    const userRepo = appServer.AppDataSource.getRepository(User)
+    const chatFlowRepo = appServer.AppDataSource.getRepository(ChatFlow)
+
+    // Lấy thông tin user
+    const foundUser = await userRepo.findOne({ where: { id: user.id } })
     if (!foundUser) {
-      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'User not found')
     }
 
-    if (foundUser.role !== 'ADMIN') {
-      throw new InternalFlowiseError(StatusCodes.FORBIDDEN, 'Error: documentStoreServices.getAllDocumentStores - Access denied')
-    }
-
+    // Nếu là MASTER_ADMIN thì lấy tất cả ChatFlow
     const type = req.query?.type as ChatflowType
-    const dbResponse = await appServer.AppDataSource.getRepository(ChatFlow).find({
-      where: { type },
+    if (foundUser.role === 'MASTER_ADMIN') {
+      return await chatFlowRepo.find({
+        where: { type },
+        relations: ['user']
+      })
+    }
+
+    // Nếu không phải MASTER_ADMIN thì phải lọc theo groupName
+    if (foundUser.role !== 'ADMIN') {
+      throw new InternalFlowiseError(StatusCodes.FORBIDDEN, 'Access denied')
+    }
+
+    // Lấy danh sách userId có cùng groupName
+    const userIdsInGroup = await userRepo
+      .createQueryBuilder('u')
+      .select('u.id')
+      .where('u.groupname = :groupname', { groupname: foundUser.groupname })
+      .getRawMany()
+
+    const userIdList = userIdsInGroup.map((u) => u.u_id)
+
+    if (userIdList.length === 0) return []
+
+    // Lấy danh sách ChatFlow thỏa mãn điều kiện
+    const chatflows = await chatFlowRepo.find({
+      where: { type, userId: In(userIdList) },
       relations: ['user']
     })
-    return dbResponse
+
+    return chatflows
   } catch (error) {
     throw new InternalFlowiseError(
       StatusCodes.INTERNAL_SERVER_ERROR,

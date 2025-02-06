@@ -24,7 +24,7 @@ const Settings = ({ chatflow, isSettingsOpen, anchorEl, isAgentCanvas, onSetting
   const user = useSelector((state) => state.user)
   const theme = useTheme()
   const [isAdminPage, setIsAdminPage] = useState(
-    pathname === '/canvas' || pathname === '/agentcanvas' ? true : user?.role === 'ADMIN' ? true : false
+    pathname === '/canvas' || pathname === '/agentcanvas' ? true : user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN' ? true : false
   )
   const [settingsMenu, setSettingsMenu] = useState([])
   const customization = useSelector((state) => state.customization)
@@ -57,6 +57,13 @@ const Settings = ({ chatflow, isSettingsOpen, anchorEl, isAgentCanvas, onSetting
       settingsMenu = menus.children
     }
 
+    if ((user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN') && !isAdminPage) {
+      setIsAdminPage(true)
+    }
+    if ((user?.role === 'ADMIN' && chatflow?.user.groupname !== user.groupname) || (user?.role === 'USER' && chatflow?.isPublic)) {
+      setIsAdminPage(false)
+    }
+
     if (isAdminPage) {
       setSettingsMenu(settingsMenu)
     } else {
@@ -64,9 +71,6 @@ const Settings = ({ chatflow, isSettingsOpen, anchorEl, isAgentCanvas, onSetting
         (menu) => menu.id === 'saveAsTemplate' || menu.id === 'loadChatflow' || menu.id === 'exportChatflow'
       )
       setSettingsMenu(settingsMenu)
-    }
-    if (user?.role !== 'ADMIN' && chatflow?.userId === user?.id && !isAdminPage) {
-      setIsAdminPage(true)
     }
   }, [chatflow, isAgentCanvas, isAdminPage])
 
