@@ -306,6 +306,7 @@ export const buildAgentGraph = async (
                   }
 
                   if (streamable) {
+                    finalResult += currentText
                     sseStreamer.streamTokenEvent(chatId, currentText)
                   }
 
