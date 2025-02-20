@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux'
 
 import.meta.env.VITE_DOCUMENT_STORE_BASE_URL = import.meta.env.VITE_DOCUMENT_STORE_BASE_URL || 'https://stock.cmcts.ai/c-agent/s3e'
 
-const selectedFilesSet = new Set()
+let selectedFilesSet = new Set()
 
 export const Input = ({ inputParam, value, nodes, edges, nodeId, onChange, disabled = false }) => {
   const user = useSelector((state) => state.user)
@@ -28,7 +28,7 @@ export const Input = ({ inputParam, value, nodes, edges, nodeId, onChange, disab
 
   if (nodeId.startsWith('awsBedrockKBRetriever') && value.startsWith('[{')) {
     const file = JSON.parse(value)
-    selectedFilesSet.add(file[0].key)
+    selectedFilesSet = new Set(file.map((obj) => obj.key).filter((key) => key !== undefined))
   }
 
   const handleCloseVariableDialog = () => {
