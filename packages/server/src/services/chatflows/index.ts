@@ -15,7 +15,7 @@ import { utilGetUploadsConfig } from '../../utils/getUploadsConfig'
 import logger from '../../utils/logger'
 import { FLOWISE_METRIC_COUNTERS, FLOWISE_COUNTER_STATUS } from '../../Interface.Metrics'
 import { QueryRunner } from 'typeorm'
-import { User } from '../../database/entities/User'
+import { User, UserRole } from '../../database/entities/User'
 
 // Check if chatflow valid for streaming
 const checkIfChatflowIsValidForStreaming = async (chatflowId: string): Promise<any> => {
@@ -116,7 +116,7 @@ const getControlChatflowsOfAdmin = async (req: any): Promise<any[]> => {
       throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
     }
 
-    if (foundUser.role !== 'ADMIN') {
+    if (foundUser.role !== UserRole.MASTER_ADMIN) {
       throw new InternalFlowiseError(StatusCodes.FORBIDDEN, 'Error: documentStoreServices.getAllDocumentStores - Access denied')
     }
 
@@ -125,6 +125,38 @@ const getControlChatflowsOfAdmin = async (req: any): Promise<any[]> => {
       where: { type },
       relations: ['user']
     })
+    return dbResponse
+  } catch (error) {
+    throw new InternalFlowiseError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      `Error: chatflowsService.getAllPublicChatflows - ${getErrorMessage(error)}`
+    )
+  }
+}
+
+const getControlChatflowsOfAdminGroup = async (req: any): Promise<any[]> => {
+  try {
+    const { user, query } = req
+    const { groupname } = query
+    const type = req.query?.type as ChatflowType
+
+    if (!user.id) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+    }
+
+    const appServer = getRunningExpressApp()
+    const foundUser = await appServer.AppDataSource.getRepository(User).findOneBy({ id: user.id })
+    if (!foundUser) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+    }
+
+    const dbResponse = await appServer.AppDataSource.getRepository(ChatFlow)
+      .createQueryBuilder('cf')
+      .leftJoinAndSelect('cf.user', 'user')
+      .where('cf.type = :type', { type })
+      .andWhere('(user.groupname = :groupname OR cf.groupname = :groupname)', { groupname })
+      .getMany()
+
     return dbResponse
   } catch (error) {
     throw new InternalFlowiseError(
@@ -337,20 +369,20 @@ const getSinglePublicChatflow = async (chatflowId: string): Promise<any> => {
     const dbResponse = await appServer.AppDataSource.getRepository(ChatFlow).findOneBy({
       id: chatflowId
     })
-    if (dbResponse && dbResponse.isPublic) {
+    if (!dbResponse) {
+      throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
+    }
+    if (dbResponse && dbResponse.isPublish) {
       return dbResponse
-    } else if (dbResponse && !dbResponse.isPublic) {
-      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
+    } else if (dbResponse && !dbResponse.isPublish) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, `Flow ${dbResponse?.name} chưa được publish`)
     }
     throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
   } catch (error) {
     if (error instanceof InternalFlowiseError && error.statusCode === StatusCodes.UNAUTHORIZED) {
       throw error
     } else {
-      throw new InternalFlowiseError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        `Error: chatflowsService.getSinglePublicChatflow - ${getErrorMessage(error)}`
-      )
+      throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `${getErrorMessage(error)}`)
     }
   }
 }
@@ -411,5 +443,6 @@ export default {
   updateChatflow,
   getSinglePublicChatflow,
   getSinglePublicChatbotConfig,
-  getControlChatflowsOfAdmin
+  getControlChatflowsOfAdmin,
+  getControlChatflowsOfAdminGroup
 }

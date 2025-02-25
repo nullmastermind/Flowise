@@ -8,7 +8,7 @@ import { S3Explorer } from 'dccxx-s3-explorer'
 import 'dccxx-s3-explorer/dist/style.css'
 import { useSelector } from 'react-redux'
 
-import.meta.env.VITE_DOCUMENT_STORE_BASE_URL = import.meta.env.VITE_DOCUMENT_STORE_BASE_URL || 'https://stock.cmcts.ai/c-agent/s3e'
+import.meta.env.VITE_DOCUMENT_STORE_BASE_URL = import.meta.env.VITE_DOCUMENT_STORE_BASE_URL || 'https://s3-explorer.cmcts1.studio.ai.vn'
 
 let selectedFilesSet = new Set()
 
@@ -26,7 +26,7 @@ export const Input = ({ inputParam, value, nodes, edges, nodeId, onChange, disab
     return inputParam.name === 'knowledgeBaseFiles'
   }, [inputParam])
 
-  if (nodeId.startsWith('awsBedrockKBRetriever') && value.startsWith('[{')) {
+  if (nodeId?.startsWith('awsBedrockKBRetriever') && value?.startsWith('[{')) {
     const file = JSON.parse(value)
     selectedFilesSet = new Set(file.map((obj) => obj.key).filter((key) => key !== undefined))
   }

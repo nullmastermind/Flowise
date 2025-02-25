@@ -31,12 +31,14 @@ import RenderContent from './RenderContent'
 const Chatflows = () => {
   const [value, setValue] = useState(0)
   const user = useSelector((state) => state.user)
+  const isMasterAdmin = user?.role === 'MASTER_ADMIN'
+  const isUser = user?.role === 'USER'
   const isAdmin = user?.role === 'ADMIN'
   const isLogin = Boolean(user?.id)
   const navigate = useNavigate()
   const theme = useTheme()
 
-  const [isLoading, setLoading] = useState(true)
+  // const [isLoading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [images, setImages] = useState({})
   const [search, setSearch] = useState('')
@@ -44,6 +46,7 @@ const Chatflows = () => {
   const getAllChatflowsApi = useApi(chatflowsApi.getAllChatflows)
   const getAllPublicChatflows = useApi(chatflowsApi.getAllPublicChatflows)
   const getAllChatflowsOfAdmin = useApi(chatflowsApi.getAllChatflowsOfAdmin)
+  const getAllChatflowsOfAdminGroup = useApi(chatflowsApi.getAllChatflowsOfAdminGroup)
 
   const [view, setView] = useState(localStorage.getItem('flowDisplayStyle') || 'card')
 
@@ -75,16 +78,17 @@ const Chatflows = () => {
   }
 
   useEffect(() => {
-    if (isLogin) {
+    if (isLogin && user) {
       getAllChatflowsApi.request()
       getAllPublicChatflows.request()
-      if (isAdmin) getAllChatflowsOfAdmin.request()
+      if (isMasterAdmin) getAllChatflowsOfAdmin.request()
+      if (isAdmin || isUser) getAllChatflowsOfAdminGroup.request(user.groupname)
     }
-  }, [isLogin])
+  }, [isLogin, user])
 
-  useEffect(() => {
-    setLoading(getAllPublicChatflows.loading)
-  }, [getAllPublicChatflows.loading])
+  // useEffect(() => {
+  //   setLoading(getAllPublicChatflows.loading)
+  // }, [getAllPublicChatflows.loading])
 
   useEffect(() => {
     if (getAllChatflowsApi.data) {
@@ -116,9 +120,9 @@ const Chatflows = () => {
             title={
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={value} onChange={handleChangeTab} aria-label='basic tabs example'>
-                  <Tab label='Đã publish' {...a11yProps(0)} />
-                  <Tab label='Cá nhân' {...a11yProps(1)} />
-                  {isAdmin && <Tab label='Admin' {...a11yProps(2)} />}
+                  {isLogin && <Tab label={isMasterAdmin ? 'Master Admin' : user.groupname} {...a11yProps(0)} />}
+                  <Tab label='Đã public' {...a11yProps(1)} />
+                  <Tab label='Cá nhân' {...a11yProps(2)} />
                 </Tabs>
               </Box>
             }
@@ -163,8 +167,37 @@ const Chatflows = () => {
           <CustomTabPanel value={value} index={0}>
             {isLogin ? (
               <RenderContent
+                data={isAdmin || isUser ? getAllChatflowsOfAdminGroup.data : getAllChatflowsOfAdmin.data}
+                // isLoading={isLoading}
+                isLoading={getAllChatflowsOfAdminGroup.loading || getAllChatflowsOfAdmin.loading}
+                filterFunction={filterFlows}
+                goToCanvas={goToCanvas}
+                images={images}
+                view={view}
+                setError={setError}
+                updateFlowsApi={
+                  isAdmin || isUser
+                    ? {
+                        request: async () => {
+                          return await getAllChatflowsOfAdminGroup.request(user.groupname)
+                        }
+                      }
+                    : getAllChatflowsOfAdmin
+                }
+                isAdmin={isMasterAdmin || isAdmin}
+                isUser={isUser}
+                msgEmpty={`Người dùng chưa tạo chatflow nào trong nhóm ${user.groupname}, tạo mới chatflow`}
+              />
+            ) : (
+              <div>Đăng nhập để xem danh sách Chatflows</div>
+            )}
+          </CustomTabPanel>
+          <CustomTabPanel value={value} index={1}>
+            {isLogin ? (
+              <RenderContent
                 data={getAllPublicChatflows.data}
-                isLoading={isLoading}
+                // isLoading={isLoading}
+                isLoading={getAllPublicChatflows.loading}
                 filterFunction={filterFlows}
                 goToCanvas={goToCanvas}
                 images={images}
@@ -176,34 +209,18 @@ const Chatflows = () => {
               <div>Đăng nhập để xem danh sách Chatflows</div>
             )}
           </CustomTabPanel>
-          <CustomTabPanel value={value} index={1}>
+          <CustomTabPanel value={value} index={2}>
             {isLogin ? (
               <RenderContent
                 data={getAllChatflowsApi.data}
-                isLoading={isLoading}
+                // isLoading={isLoading}
+                isLoading={getAllChatflowsApi.loading}
                 filterFunction={filterFlows}
                 goToCanvas={goToCanvas}
                 images={images}
                 view={view}
                 setError={setError}
                 updateFlowsApi={getAllChatflowsApi}
-              />
-            ) : (
-              <div>Đăng nhập để xem danh sách Chatflows</div>
-            )}
-          </CustomTabPanel>
-          <CustomTabPanel value={value} index={2}>
-            {isLogin ? (
-              <RenderContent
-                data={getAllChatflowsOfAdmin.data}
-                isLoading={isLoading}
-                filterFunction={filterFlows}
-                goToCanvas={goToCanvas}
-                images={images}
-                view={view}
-                setError={setError}
-                updateFlowsApi={getAllChatflowsOfAdmin}
-                isAdmin
               />
             ) : (
               <div>Đăng nhập để xem danh sách Chatflows</div>

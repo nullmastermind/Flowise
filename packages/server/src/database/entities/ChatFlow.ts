@@ -21,6 +21,9 @@ export class ChatFlow implements IChatFlow {
   isPublic?: boolean
 
   @Column({ nullable: true })
+  isPublish?: boolean
+
+  @Column({ nullable: true })
   apikeyid?: string
 
   @Column({ nullable: true, type: 'text' })
@@ -38,6 +41,9 @@ export class ChatFlow implements IChatFlow {
   @Column({ nullable: true, type: 'text' })
   followUpPrompts?: string
 
+  @Column('varchar', { nullable: true, default: '' })
+  groupname: string
+
   @Column({ nullable: true, type: 'text' })
   category?: string
 
@@ -47,7 +53,7 @@ export class ChatFlow implements IChatFlow {
   @Column({ type: 'uuid', nullable: true })
   userId: string
 
-  @ManyToOne(() => User, (user) => user.chatFlows, { nullable: true })
+  @ManyToOne(() => User, (user) => user.chatFlows, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User
 

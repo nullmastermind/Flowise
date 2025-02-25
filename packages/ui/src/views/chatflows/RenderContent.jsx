@@ -15,10 +15,13 @@ const RenderContent = ({
   view,
   goToCanvas,
   images,
-  setError
+  setError,
+  isUser,
+  msgEmpty,
+  isAgentCanvas
 }) => {
-  const [data, setData] = useState([])
-  const [filter, setFilter] = useState('all')
+  const [data, setData] = useState(null)
+  const [filter, setFilter] = useState(isUser ? 'publish' : 'all')
 
   useEffect(() => {
     if (dataInput && filter === 'publish') {
@@ -44,8 +47,8 @@ const RenderContent = ({
             row
           >
             <FormControlLabel value='all' control={<Radio />} label='Tất cả' />
-            <FormControlLabel value='publish' control={<Radio />} label='Đã publish' />
-            <FormControlLabel value='unpublish' control={<Radio />} label='Chưa publish' />
+            <FormControlLabel value='publish' control={<Radio />} label='Đã public' />
+            <FormControlLabel value='unpublish' control={<Radio />} label='Chưa public' />
           </RadioGroup>
         </FormControl>
       )}
@@ -57,13 +60,16 @@ const RenderContent = ({
             <Skeleton variant='rounded' height={160} />
           </Box>
         ) : (
-          <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
-            {data?.filter(filterFunction).map((item, index) => (
-              <ItemCard key={index} onClick={() => goToCanvas(item)} data={item} images={images[item.id]} />
-            ))}
-          </Box>
+          data?.length > 0 && (
+            <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
+              {data?.filter(filterFunction).map((item, index) => (
+                <ItemCard key={index} onClick={() => goToCanvas(item)} data={item} images={images[item.id]} />
+              ))}
+            </Box>
+          )
         )
       ) : (
+        // data?.length > 0 && (
         <FlowListTable
           data={data}
           images={images}
@@ -71,14 +77,16 @@ const RenderContent = ({
           filterFunction={filterFunction}
           updateFlowsApi={updateFlowsApi}
           setError={setError}
+          isAgentCanvas={isAgentCanvas}
         />
+        // )
       )}
-      {!isLoading && (!data || data.length === 0) && (
+      {data?.length === 0 && (
         <Stack sx={{ alignItems: 'center', justifyContent: 'center' }} flexDirection='column'>
           <Box sx={{ p: 2, height: 'auto' }}>
             <img style={{ objectFit: 'cover', height: '25vh', width: 'auto' }} src={WorkflowEmptySVG} alt='WorkflowEmptySVG' />
           </Box>
-          <div>Người dùng chưa tạo chatflow nào, tạo mới chatflow</div>
+          <div>{msgEmpty || 'Người dùng chưa tạo chatflow nào, tạo mới chatflow'}</div>
         </Stack>
       )}
     </div>
@@ -91,10 +99,13 @@ RenderContent.propTypes = {
   filterFunction: PropTypes.func.isRequired,
   updateFlowsApi: PropTypes.object.isRequired,
   isAdmin: PropTypes.bool,
+  isUser: PropTypes.bool,
   view: PropTypes.string.isRequired,
   goToCanvas: PropTypes.func.isRequired,
   images: PropTypes.object.isRequired,
-  setError: PropTypes.func.isRequired
+  setError: PropTypes.func.isRequired,
+  msgEmpty: PropTypes.string,
+  isAgentCanvas: PropTypes.bool
 }
 
 export default RenderContent

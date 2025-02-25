@@ -12,7 +12,7 @@ import {
   ITeamState,
   IUsedTool
 } from 'flowise-components'
-import { cloneDeep, flatten, omit, uniq } from 'lodash'
+import { cloneDeep, flatten, forEach, omit, uniq } from 'lodash'
 import { END, START, StateGraph } from '@langchain/langgraph'
 import { StatusCodes } from 'http-status-codes'
 import { v4 as uuidv4 } from 'uuid'
@@ -44,6 +44,7 @@ import { replaceInputsWithConfig, resolveVariables } from '.'
 import { InternalFlowiseError } from '../errors/internalFlowiseError'
 import { getErrorMessage } from '../errors/utils'
 import logger from './logger'
+import fs from 'fs'
 
 /**
  * Build Agent Graph
@@ -204,6 +205,9 @@ export const buildAgentGraph = async (
         })
       } else {
         isSequential = true
+
+        console.time('perf: compileSeqAgentsGraph')
+
         streamResults = compileSeqAgentsGraph({
           depthQueue,
           chatflow,
@@ -219,6 +223,8 @@ export const buildAgentGraph = async (
           action: incomingInput.action,
           uploadedFilesContent
         })
+
+        console.timeEnd(`perf(${chatId}): compileSeqAgentsGraph`)
       }
 
       if (streamResults) {
@@ -227,9 +233,38 @@ export const buildAgentGraph = async (
         let streamText = ''
         let streamable = false
         let sendLoadingMessageFnId: any = -1
+        const allOutputs: string[] = []
+        let perf = {
+          time: performance.now(),
+          event: '',
+          total: 0
+        }
+        // Track event start times and durations
+        const eventStartTimes: Record<string, number> = {}
+        const eventDurations: Record<string, number> = {}
 
         for await (const output of await streamResults) {
           if (isSequential) {
+            if (output.event !== perf.event) {
+              const offsetPerfTime = performance.now() - perf.time
+              // Track event start/end times
+              if (output.event.endsWith('_start')) {
+                eventStartTimes[output.event] = performance.now()
+              } else if (output.event.endsWith('_end')) {
+                const startEvent = output.event.replace('_end', '_start')
+                const startTime = eventStartTimes[startEvent]
+                if (startTime) {
+                  const duration = performance.now() - startTime
+                  eventDurations[output.event.replace('_end', '')] = duration
+                  console.log(`perf(${chatId}): ${output.event.replace('_end', '')} completed in ${duration.toFixed(2)}ms`)
+                }
+              }
+              console.log(`perf(${chatId}): ${output.event}`, offsetPerfTime)
+              perf.time = performance.now()
+              perf.event = output.event
+              perf.total += offsetPerfTime
+            }
+
             if (shouldStreamResponse) {
               if (!isStreamingStarted) {
                 isStreamingStarted = true
@@ -238,9 +273,20 @@ export const buildAgentGraph = async (
                 }
               }
 
+              if (process.env.LOCAL_DEBUG) {
+                allOutputs.push(JSON.stringify(output))
+              }
+
               // console.log('content', output.data?.chunk?.content)
               // console.log('tags', output.tags)
-              // console.log('output.event', output.event)
+
+              if (output.event === 'on_retriever_end') {
+                forEach(output.data?.output, (retrieverOutput) => {
+                  if ('pageContent' in retrieverOutput) {
+                    totalSourceDocuments.push(retrieverOutput)
+                  }
+                })
+              }
 
               if (sseStreamer) {
                 if (
@@ -389,38 +435,50 @@ export const buildAgentGraph = async (
           }
         }
 
+        console.log(`perf${chatId}: total`, perf.total)
+        // Log final event durations summary
+        console.log(`perf${chatId}: event durations:`, JSON.stringify(eventDurations, null, 2))
+
+        if (process.env.LOCAL_DEBUG) {
+          fs.writeFileSync('stream_outputs.jsonl', allOutputs.join('\r\n'))
+        }
+
         clearTimeout(sendLoadingMessageFnId)
 
         if (isSequential && !streamable) {
-          if (retryTimes < 3) {
-            return buildAgentGraph(
-              chatflow,
-              chatId,
-              apiMessageId,
-              sessionId,
-              incomingInput,
-              isInternal,
-              baseURL,
-              sseStreamer,
-              shouldStreamResponse,
-              uploadedFilesContent,
-              retryTimes + 1
-            )
-          }
+          console.log('no final answer:', JSON.stringify(totalStreamText))
 
-          try {
-            //  {"sub_queries":["Xin chào! Để tôi có thể hỗ trợ bạn tốt hơn về vấn đề học phí, tôi cần biết thêm một số thông tin. Bạn có thể cho tôi biết tên và số điện thoại của bạn được không?"],"convesation_related":false,"worker_call":false,"name":"None","phone_number":"None","human_support":false,"unsatisfied_times":0}
-            const jsonAnswer = JSON.parse(totalStreamText)
-            if (jsonAnswer.sub_queries[0]) {
-              totalStreamText = jsonAnswer.sub_queries[0]
-            }
-          } catch {
-            // ignore
-          }
+          sseStreamer?.streamTokenEvent(chatId, totalStreamText)
 
-          if (sseStreamer) {
-            sseStreamer.streamTokenEvent(chatId, totalStreamText)
-          }
+          //   if (retryTimes < 3) {
+          //     return buildAgentGraph(
+          //       chatflow,
+          //       chatId,
+          //       apiMessageId,
+          //       sessionId,
+          //       incomingInput,
+          //       isInternal,
+          //       baseURL,
+          //       sseStreamer,
+          //       shouldStreamResponse,
+          //       uploadedFilesContent,
+          //       retryTimes + 1
+          //     )
+          //   }
+          //
+          //   try {
+          //     //  {"sub_queries":["Xin chào! Để tôi có thể hỗ trợ bạn tốt hơn về vấn đề học phí, tôi cần biết thêm một số thông tin. Bạn có thể cho tôi biết tên và số điện thoại của bạn được không?"],"convesation_related":false,"worker_call":false,"name":"None","phone_number":"None","human_support":false,"unsatisfied_times":0}
+          //     const jsonAnswer = JSON.parse(totalStreamText)
+          //     if (jsonAnswer.sub_queries[0]) {
+          //       totalStreamText = jsonAnswer.sub_queries[0]
+          //     }
+          //   } catch {
+          //     // ignore
+          //   }
+          //
+          //   if (sseStreamer) {
+          //     sseStreamer.streamTokenEvent(chatId, totalStreamText)
+          //   }
         }
 
         // console.log('totalStreamText:', JSON.stringify(totalStreamText))
@@ -979,6 +1037,7 @@ const compileSeqAgentsGraph = async (params: SeqAgentsGraphParams) => {
 
 <administrator>
 ### Responses-Format (except for "Final Answer:" which is mandatory, the rest can be combined with the user's prompt above):
+
 Format your responses following this template:
 
 - thought: consider what step we're on and what to do next (briefly under 30 words) - optional
@@ -991,9 +1050,10 @@ Format your responses following this template:
 - Final Answer:
 
 
-"Final Answer:" is a REQUIRED keyword, please ensure that this keyword always appears before your final answer so that the system can extract your final answer.
-Final Answer cannot contain thought, action, action input, or observation information. To clearly visualize, divide the answer into sections and the Final Answer section is always at the end.
-</administrator>${retryTimes > 0 ? '\n\nYou are missing the "Final Answer:" keyword in your final answer.' : ''}`
+### Constraint:
+- "Final Answer:" is a REQUIRED keyword, please ensure that this keyword always appears before your final answer so that the system can extract your final answer.
+- The \`Final Answer\` cannot contain \`thought\`, \`action\`, \`action input\`, or \`observation information\`. The content behind the keyword \`Final Answer:\` is the final Markdown-formatted answer after synthesizing from those processes.
+</administrator>`
 
   /*** Start processing every Agent nodes ***/
   for (const agentNodeId of getSortedDepthNodes(depthQueue)) {
@@ -1001,9 +1061,9 @@ Final Answer cannot contain thought, action, action input, or observation inform
     if (!agentNode) continue
 
     if (agentNode.data.inputs?.['systemMessagePrompt']) {
-      if (!agentNode.data.inputs['systemMessagePrompt'].endsWith(systemHideToolCall)) {
-        agentNode.data.inputs['systemMessagePrompt'] += systemHideToolCall
-      }
+      // if (agentNode.data.inputs['systemMessagePrompt'].includes('Final Answer:')) {
+      //   agentNode.data.inputs['systemMessagePrompt'] += systemHideToolCall
+      // }
     }
     // console.log('agentNode', agentNode)
 

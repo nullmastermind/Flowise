@@ -1,5 +1,5 @@
-import express from 'express'
-import { Request, Response } from 'express'
+require('./instrument')
+import express, { Request, Response } from 'express'
 import path from 'path'
 import cors from 'cors'
 import http from 'http'
@@ -7,7 +7,7 @@ import basicAuth from 'express-basic-auth'
 import { Server } from 'socket.io'
 import { DataSource } from 'typeorm'
 import { IChatFlow } from './Interface'
-import { getNodeModulesPackagePath, getEncryptionKey } from './utils'
+import { getEncryptionKey, getNodeModulesPackagePath } from './utils'
 import logger, { expressRequestLogger } from './utils/logger'
 import { getDataSource } from './DataSource'
 import { NodesPool } from './NodesPool'
@@ -16,7 +16,7 @@ import { ChatflowPool } from './ChatflowPool'
 import { CachePool } from './CachePool'
 import { initializeRateLimiter } from './utils/rateLimit'
 import { getAPIKeys } from './utils/apiKey'
-import { sanitizeMiddleware, getCorsOptions, getAllowedIframeOrigins } from './utils/XSS'
+import { getAllowedIframeOrigins, getCorsOptions, sanitizeMiddleware } from './utils/XSS'
 import { Telemetry } from './utils/telemetry'
 import flowiseApiV1Router from './routes'
 import errorHandlerMiddleware from './middlewares/errors'
@@ -26,6 +26,10 @@ import { IMetricsProvider } from './Interface.Metrics'
 import { Prometheus } from './metrics/Prometheus'
 import { OpenTelemetry } from './metrics/OpenTelemetry'
 import 'global-agent/bootstrap'
+import { getRunningExpressApp } from './utils/getRunningExpressApp'
+import { User } from './database/entities/User'
+import { StatusCodes } from 'http-status-codes'
+import { InternalFlowiseError } from './errors/internalFlowiseError'
 
 declare global {
   namespace Express {
@@ -197,6 +201,15 @@ export class App {
             } else {
               const valueDecoded = await validateAPIKey(req)
               if (!valueDecoded) {
+                return res.status(401).json({ error: 'Unauthorized Access' })
+              }
+              const appServer = getRunningExpressApp()
+              const user = await appServer.AppDataSource.getRepository(User).findOne({
+                where: {
+                  id: valueDecoded.id
+                }
+              })
+              if (!user) {
                 return res.status(401).json({ error: 'Unauthorized Access' })
               }
               req.user = valueDecoded
