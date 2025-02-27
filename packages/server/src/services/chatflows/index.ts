@@ -121,15 +121,25 @@ const getControlChatflowsOfAdmin = async (req: any): Promise<any[]> => {
     }
 
     const type = req.query?.type as ChatflowType
-    const dbResponse = await appServer.AppDataSource.getRepository(ChatFlow).find({
-      where: { type },
-      relations: ['user']
-    })
+    const limit = Number(req.query?.limit) || 15
+    const offset = Number(req.query?.offset) || 0
+
+    const query = appServer.AppDataSource.getRepository(ChatFlow).createQueryBuilder('cf').leftJoinAndSelect('cf.user', 'user')
+
+    if (type) {
+      query.where('cf.type = :type', { type })
+    }
+
+    const dbResponse = await query
+      .skip(offset) // Bỏ qua số lượng bản ghi theo offset
+      .take(limit) // Giới hạn số lượng bản ghi theo limit
+      .getMany()
+
     return dbResponse
   } catch (error) {
     throw new InternalFlowiseError(
       StatusCodes.INTERNAL_SERVER_ERROR,
-      `Error: chatflowsService.getAllPublicChatflows - ${getErrorMessage(error)}`
+      `Error: chatflowsService.getControlChatflowsOfAdmin - ${getErrorMessage(error)}`
     )
   }
 }
@@ -139,6 +149,8 @@ const getControlChatflowsOfAdminGroup = async (req: any): Promise<any[]> => {
     const { user, query } = req
     const { groupname } = query
     const type = req.query?.type as ChatflowType
+    const limit = Number(req.query?.limit) || 15
+    const offset = Number(req.query?.offset) || 0
 
     if (!user.id) {
       throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
@@ -150,18 +162,26 @@ const getControlChatflowsOfAdminGroup = async (req: any): Promise<any[]> => {
       throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
     }
 
-    const dbResponse = await appServer.AppDataSource.getRepository(ChatFlow)
-      .createQueryBuilder('cf')
-      .leftJoinAndSelect('cf.user', 'user')
-      .where('cf.type = :type', { type })
-      .andWhere('(user.groupname = :groupname OR cf.groupname = :groupname)', { groupname })
+    const queryBuilder = appServer.AppDataSource.getRepository(ChatFlow).createQueryBuilder('cf').leftJoinAndSelect('cf.user', 'user')
+
+    if (type) {
+      queryBuilder.where('cf.type = :type', { type })
+    }
+
+    if (groupname) {
+      queryBuilder.andWhere('(user.groupname = :groupname OR cf.groupname = :groupname)', { groupname })
+    }
+
+    const dbResponse = await queryBuilder
+      .skip(offset) // Bỏ qua số lượng bản ghi theo offset
+      .take(limit) // Giới hạn số lượng bản ghi theo limit
       .getMany()
 
     return dbResponse
   } catch (error) {
     throw new InternalFlowiseError(
       StatusCodes.INTERNAL_SERVER_ERROR,
-      `Error: chatflowsService.getAllPublicChatflows - ${getErrorMessage(error)}`
+      `Error: chatflowsService.getControlChatflowsOfAdminGroup - ${getErrorMessage(error)}`
     )
   }
 }
@@ -169,11 +189,24 @@ const getControlChatflowsOfAdminGroup = async (req: any): Promise<any[]> => {
 const getAllPublicChatflows = async (req: any): Promise<any[]> => {
   try {
     const type = req.query?.type as ChatflowType
+    const limit = Number(req.query?.limit) || 15
+    const offset = Number(req.query?.offset) || 0
+
     const appServer = getRunningExpressApp()
-    const dbResponse = await appServer.AppDataSource.getRepository(ChatFlow).find({
-      where: { isPublic: true, type },
-      relations: ['user']
-    })
+    const query = appServer.AppDataSource.getRepository(ChatFlow)
+      .createQueryBuilder('cf')
+      .leftJoinAndSelect('cf.user', 'user')
+      .where('cf.isPublic = :isPublic', { isPublic: true })
+
+    if (type) {
+      query.andWhere('cf.type = :type', { type })
+    }
+
+    const dbResponse = await query
+      .skip(offset) // Bỏ qua số lượng bản ghi theo offset
+      .take(limit) // Giới hạn số lượng bản ghi theo limit
+      .getMany()
+
     return dbResponse
   } catch (error) {
     throw new InternalFlowiseError(
@@ -186,7 +219,10 @@ const getAllPublicChatflows = async (req: any): Promise<any[]> => {
 const getAllChatflows = async (req: any): Promise<any[]> => {
   try {
     const type = req.query?.type as ChatflowType
+    const limit = Number(req.query?.limit) || 15
+    const offset = Number(req.query?.offset) || 0
     const { user } = req
+
     if (!user.id) {
       throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
     }
@@ -205,7 +241,11 @@ const getAllChatflows = async (req: any): Promise<any[]> => {
       query.andWhere('cf.type = :type', { type })
     }
 
-    const dbResponse = await query.getMany()
+    const dbResponse = await query
+      .skip(offset) // Bỏ qua số lượng bản ghi theo offset
+      .take(limit) // Giới hạn số lượng bản ghi theo limit
+      .getMany()
+
     return dbResponse.map((chatflow) => ({
       ...chatflow,
       user: foundUser

@@ -5,6 +5,15 @@ import { FlowListTable } from '@/ui-component/table/FlowListTable'
 import ItemCard from '@/ui-component/cards/ItemCard'
 import WorkflowEmptySVG from '@/assets/images/workflow_empty.svg'
 import { gridSpacing } from '@/store/constant'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
+} from '@/ui-component/pagination/Pagination'
 
 const RenderContent = ({
   data: dataInput,
@@ -22,6 +31,9 @@ const RenderContent = ({
 }) => {
   const [data, setData] = useState(null)
   const [filter, setFilter] = useState(isUser ? 'publish' : 'all')
+  const [currentPage, setCurrentPage] = useState(1) // 🆕 Thêm state cho currentPage
+  const itemsPerPage = 15
+  const totalData = data?.length || 0
 
   useEffect(() => {
     if (dataInput && filter === 'publish') {
@@ -34,6 +46,9 @@ const RenderContent = ({
       setData(dataInput)
     }
   }, [dataInput, filter])
+
+  const totalPages = Math.ceil(totalData / itemsPerPage)
+  const paginatedData = data?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   return (
     <div className='relative'>
@@ -60,18 +75,17 @@ const RenderContent = ({
             <Skeleton variant='rounded' height={160} />
           </Box>
         ) : (
-          data?.length > 0 && (
+          totalData > 0 && (
             <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
-              {data?.filter(filterFunction).map((item, index) => (
+              {paginatedData?.filter(filterFunction).map((item, index) => (
                 <ItemCard key={index} onClick={() => goToCanvas(item)} data={item} images={images[item.id]} />
               ))}
             </Box>
           )
         )
       ) : (
-        // data?.length > 0 && (
         <FlowListTable
-          data={data}
+          data={paginatedData}
           images={images}
           isLoading={isLoading}
           filterFunction={filterFunction}
@@ -79,9 +93,56 @@ const RenderContent = ({
           setError={setError}
           isAgentCanvas={isAgentCanvas}
         />
-        // )
       )}
-      {data?.length === 0 && (
+      <br />
+      {totalData > 0 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationPrevious
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              aria-disabled={currentPage === 1}
+              className='cursor-pointer aria-disabled:pointer-events-none'
+            />
+            {Array.from({ length: totalPages }, (_, index) => {
+              const pageIndex = index + 1
+              const isHidden =
+                totalPages > 7 &&
+                !(pageIndex === 1 || pageIndex === totalPages || (pageIndex >= currentPage - 1 && pageIndex <= currentPage + 1))
+
+              if (isHidden) {
+                if ((pageIndex === currentPage - 2 && currentPage > 4) || (pageIndex === currentPage + 2 && currentPage < totalPages - 3)) {
+                  return (
+                    <PaginationEllipsis key={index} className='pointer-events-none'>
+                      ...
+                    </PaginationEllipsis>
+                  )
+                }
+                return null
+              }
+
+              return (
+                <PaginationItem className='cursor-pointer' key={index}>
+                  <PaginationLink
+                    isActive={currentPage === pageIndex}
+                    onClick={() => setCurrentPage(pageIndex)}
+                    className={`${currentPage === pageIndex ? 'bg-blue-500 text-white' : 'bg-white text-black'} hover:bg-blue-100`}
+                  >
+                    {pageIndex}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            })}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                aria-disabled={currentPage === totalPages}
+                className='cursor-pointer aria-disabled:pointer-events-none'
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+      {totalData === 0 && (
         <Stack sx={{ alignItems: 'center', justifyContent: 'center' }} flexDirection='column'>
           <Box sx={{ p: 2, height: 'auto' }}>
             <img style={{ objectFit: 'cover', height: '25vh', width: 'auto' }} src={WorkflowEmptySVG} alt='WorkflowEmptySVG' />

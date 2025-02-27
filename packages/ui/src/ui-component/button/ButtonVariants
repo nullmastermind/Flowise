@@ -1,0 +1,29 @@
+import { cva } from 'class-variance-authority'
+
+const buttonVariants = cva(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 s3-explr-ui-button',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90 s3-explr-ui-button-default',
+        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 s3-explr-ui-button-destructive',
+        outline: 'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground s3-explr-ui-button-outline',
+        secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 s3-explr-ui-button-secondary',
+        ghost: 'hover:bg-accent hover:text-accent-foreground s3-explr-ui-button-ghost',
+        link: 'text-primary underline-offset-4 hover:underline s3-explr-ui-button-link'
+      },
+      size: {
+        default: 'h-9 px-4 py-2 s3-explr-ui-button-size-default',
+        sm: 'h-8 rounded-md px-3 text-xs s3-explr-ui-button-size-sm',
+        lg: 'h-10 rounded-md px-8 s3-explr-ui-button-size-lg',
+        icon: 'h-9 w-9 s3-explr-ui-button-size-icon'
+      }
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default'
+    }
+  }
+)
+
+export { buttonVariants }
