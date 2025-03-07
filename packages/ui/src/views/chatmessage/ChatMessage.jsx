@@ -2154,10 +2154,10 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
               onKeyDown={handleEnter}
               id='userInput'
               name='userInput'
-              placeholder={loading ? 'Waiting for response...' : 'Type your question...'}
+              placeholder={loading ? 'Đang chờ phản hồi...' : 'Nhập câu hỏi của bạn...'}
               value={userInput}
               onChange={onChange}
-              multiline={true}
+              multiline
               maxRows={isDialog ? 7 : 2}
               startAdornment={
                 <>
