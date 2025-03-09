@@ -305,7 +305,8 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
                 preview: previewUrl,
                 type: 'file',
                 name: name,
-                mime: file.type
+                mime: file.type,
+                file: file
               })
             }
             reader.readAsDataURL(file)
@@ -327,7 +328,8 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
               data: s,
               preview: s,
               type: 'url',
-              name: s ? s.substring(s.lastIndexOf('/') + 1) : ''
+              name: s ? s.substring(s.lastIndexOf('/') + 1) : '',
+              file: item
             }
             setPreviews((prevPreviews) => [...prevPreviews, upload])
           })
@@ -342,7 +344,8 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
               data: hrefStr,
               preview: hrefStr,
               type: 'url',
-              name: hrefStr ? hrefStr.substring(hrefStr.lastIndexOf('/') + 1) : ''
+              name: hrefStr ? hrefStr.substring(hrefStr.lastIndexOf('/') + 1) : '',
+              file: item
             }
             setPreviews((prevPreviews) => [...prevPreviews, upload])
           })
@@ -380,7 +383,8 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
               preview: URL.createObjectURL(file),
               type: 'file',
               name: name,
-              mime: file.type
+              mime: file.type,
+              file: file
             })
           }
           reader.readAsDataURL(file)
@@ -783,7 +787,8 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
         data: item.data,
         type: item.type,
         name: item.name,
-        mime: item.mime
+        mime: item.mime,
+        file: item.file
       }
     })
 
@@ -1376,6 +1381,14 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
 
   const renderFileUploads = (item, index) => {
     if (item?.mime?.startsWith('image/')) {
+      let src = ''
+
+      if (item?.data && item.file) {
+        src = URL.createObjectURL(item.file)
+      } else {
+        src = `${baseURL}/api/v1/get-upload-file?chatflowId=${chatflowid}&chatId=${chatId}&fileName=${item.name}`
+      }
+
       return (
         <Card
           key={index}
@@ -1387,7 +1400,7 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
             flex: '0 0 auto'
           }}
         >
-          <CardMedia component='img' image={item.data} sx={{ height: 64 }} alt={'preview'} style={messageImageStyle} />
+          <CardMedia component='img' image={src} sx={{ height: 64 }} alt={'preview'} style={messageImageStyle} />
         </Card>
       )
     } else if (item?.mime?.startsWith('audio/')) {
