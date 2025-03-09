@@ -1383,8 +1383,8 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
     if (item?.mime?.startsWith('image/')) {
       let src = ''
 
-      if (item?.data && item.file) {
-        src = URL.createObjectURL(item.file)
+      if (item?.data && Object.keys(item?.file).length !== 0) {
+        src = URL?.createObjectURL(item?.file)
       } else {
         src = `${baseURL}/api/v1/get-upload-file?chatflowId=${chatflowid}&chatId=${chatId}&fileName=${item.name}`
       }

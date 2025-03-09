@@ -307,7 +307,6 @@ export const buildAgentGraph = async (
 
                   totalStreamText += output.data?.chunk?.content || ''
                   clearTimeout(sendLoadingMessageFnId)
-                  console.log('🚀 ~ forawait ~ output.data?.chunk?.content:', output.data?.chunk?.content)
                 } else if (output.event === 'on_chat_model_end' && totalStreamText.trim()) {
                   // sendLoadingMessageFnId = setTimeout(() => {
                   //   sseStreamer.streamTokenEvent(chatId, '<loading/>')
@@ -567,7 +566,7 @@ export const buildAgentGraph = async (
           sseStreamer.streamArtifactsEvent(chatId, totalArtifacts)
           sseStreamer.streamEndEvent(chatId)
         }
-        console.log('totalStreamText:', { finalResult, totalStreamText })
+        // console.log('totalStreamText:', { finalResult, totalStreamText })
         return {
           finalResult: finalResult || totalStreamText,
           finalAction,

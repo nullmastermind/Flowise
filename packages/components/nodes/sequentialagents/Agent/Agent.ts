@@ -35,6 +35,8 @@ import {
 } from '../commonUtils'
 import { END, StateGraph } from '@langchain/langgraph'
 import { StructuredTool } from '@langchain/core/tools'
+import { llmSupportsVision } from '../../../src/multiModalUtils'
+import { getFileFromStorage } from '../../../src'
 
 const defaultApprovalPrompt = `You are about to execute tool: {tools}. Ask if user want to proceed`
 const examplePrompt = 'You are a research assistant who can search for up-to-date info using search engine.'
@@ -710,7 +712,7 @@ async function agentNode(
     input,
     options
   }: {
-    state: ISeqAgentsState
+    state: any
     llm: BaseChatModel
     interrupt: boolean
     agent: AgentExecutor | RunnableSequence
@@ -729,6 +731,45 @@ async function agentNode(
 
     // @ts-ignore
     state.messages = restructureMessages(llm, state)
+
+    // Check if model supports vision and add images to messages if it does
+    if (llmSupportsVision(llm) && options.uploads && options.uploads.length && options.uploads[0].mime.startsWith('image/')) {
+      const contents = await getFileFromStorage(options.uploads[0].name, options.chatflowid, options.chatId)
+      // as the image is stored in the server, read the file and convert it to base64
+      const bf = 'data:' + options.uploads[0].mime + ';base64,' + contents.toString('base64')
+
+      const imageMessage = new HumanMessage({
+        content: [
+          {
+            type: 'image_url',
+            image_url: {
+              url: bf,
+              detail: 'low'
+            }
+          }
+        ]
+      })
+
+      // Add the image message to state
+      const messages = state.messages as unknown as BaseMessage[]
+
+      // Try to find and replace the last human message
+      let imageAdded = false
+      for (let i = messages.length - 1; i >= 0; i--) {
+        if (messages[i]._getType() === 'human') {
+          messages[i] = imageMessage
+          imageAdded = true
+          break
+        }
+      }
+
+      // If no human message was found, add the new one
+      if (!imageAdded) {
+        messages.push(imageMessage)
+      }
+
+      state.messages = messages
+    }
 
     let result = await agent.invoke({ ...state, signal: abortControllerSignal.signal }, config)
 
