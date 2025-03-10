@@ -733,7 +733,7 @@ async function agentNode(
     state.messages = restructureMessages(llm, state)
 
     // Check if model supports vision and add images to messages if it does
-    if (llmSupportsVision(llm) && options.uploads && options.uploads.length) {
+    if (llmSupportsVision(llm) && options.uploads && options.uploads.length && options?.uploads[0]?.mime.startsWith('image/')) {
       const imageContents = []
 
       // Process all images in uploads
@@ -742,7 +742,6 @@ async function agentNode(
           const contents = await getFileFromStorage(upload.name, options.chatflowid, options.chatId)
           // Convert image to base64
           const bf = 'data:' + upload.mime + ';base64,' + contents.toString('base64')
-
           imageContents.push({
             type: 'image_url',
             image_url: {
