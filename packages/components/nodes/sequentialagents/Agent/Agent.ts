@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm'
 import { RunnableSequence, RunnablePassthrough, RunnableConfig } from '@langchain/core/runnables'
 import { ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate, BaseMessagePromptTemplateLike } from '@langchain/core/prompts'
 import { BaseChatModel } from '@langchain/core/language_models/chat_models'
-import { AIMessage, AIMessageChunk, BaseMessage, HumanMessage, ToolMessage } from '@langchain/core/messages'
+import { AIMessage, AIMessageChunk, BaseMessage, ToolMessage } from '@langchain/core/messages'
 import { formatToOpenAIToolMessages } from 'langchain/agents/format_scratchpad/openai_tools'
 import { type ToolsAgentStep } from 'langchain/agents/openai/output_parser'
 import { StringOutputParser } from '@langchain/core/output_parsers'
@@ -886,7 +886,7 @@ const getReturnOutput = async (nodeData: INodeData, input: string, options: ICom
 
 const convertCustomMessagesToBaseMessages = (messages: string[], name: string, additional_kwargs: ICommonObject) => {
   return messages.map((message) => {
-    return new HumanMessage({
+    return new AIMessage({
       content: message,
       name,
       additional_kwargs: Object.keys(additional_kwargs).length ? additional_kwargs : undefined
