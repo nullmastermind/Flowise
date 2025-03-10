@@ -5,23 +5,32 @@ import { FlowListTable } from '@/ui-component/table/FlowListTable'
 import ItemCard from '@/ui-component/cards/ItemCard'
 import WorkflowEmptySVG from '@/assets/images/workflow_empty.svg'
 import { gridSpacing } from '@/store/constant'
+import PaginationComponent from '@/ui-component/pagination/PaginationComponent'
 
 const RenderContent = ({
   data: dataInput,
   isLoading,
   filterFunction,
   updateFlowsApi,
-  isAdmin = false,
+  isAdmin = true,
   view,
   goToCanvas,
   images,
   setError,
   isUser,
   msgEmpty,
-  isAgentCanvas
+  isAgentCanvas,
+  pagination,
+  currentPage,
+  setCurrentPage
 }) => {
   const [data, setData] = useState(null)
   const [filter, setFilter] = useState(isUser ? 'publish' : 'all')
+
+  const handleOnchangePage = async (_, page) => {
+    await setCurrentPage(page)
+    await updateFlowsApi.request({ currentPageInput: page })
+  }
 
   useEffect(() => {
     if (dataInput && filter === 'publish') {
@@ -37,6 +46,11 @@ const RenderContent = ({
 
   return (
     <div className='relative'>
+      {pagination && (
+        <div className='absolute top-[-41px] right-0'>
+          <PaginationComponent count={pagination.totalPages} page={currentPage} onChange={handleOnchangePage} />
+        </div>
+      )}
       {isAdmin && (
         <FormControl className='absolute top-[-45px] left-0'>
           <RadioGroup
@@ -105,7 +119,15 @@ RenderContent.propTypes = {
   images: PropTypes.object.isRequired,
   setError: PropTypes.func.isRequired,
   msgEmpty: PropTypes.string,
-  isAgentCanvas: PropTypes.bool
+  isAgentCanvas: PropTypes.bool,
+  pagination: PropTypes.shape({
+    page: PropTypes.number.isRequired,
+    pageSize: PropTypes.number.isRequired,
+    totalCount: PropTypes.number.isRequired,
+    totalPages: PropTypes.number.isRequired
+  }).isRequired,
+  currentPage: PropTypes.number.isRequired,
+  setCurrentPage: PropTypes.func.isRequired
 }
 
 export default RenderContent

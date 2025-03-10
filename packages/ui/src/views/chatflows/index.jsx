@@ -31,27 +31,26 @@ import RenderContent from './RenderContent'
 const Chatflows = () => {
   const [value, setValue] = useState(0)
   const user = useSelector((state) => state.user)
-  const isMasterAdmin = user?.role === 'MASTER_ADMIN'
-  const isUser = user?.role === 'USER'
-  const isAdmin = user?.role === 'ADMIN'
   const isLogin = Boolean(user?.id)
   const navigate = useNavigate()
   const theme = useTheme()
 
-  // const [isLoading, setLoading] = useState(true)
+  // const isMasterAdmin = user?.role === 'MASTER_ADMIN'
+  // const isUser = user?.role === 'USER'
+  // const isAdmin = user?.role === 'ADMIN'
+
   const [error, setError] = useState(null)
   const [images, setImages] = useState({})
   const [search, setSearch] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
 
   const getAllChatflowsApi = useApi(chatflowsApi.getAllChatflows)
-  const getAllPublicChatflows = useApi(chatflowsApi.getAllPublicChatflows)
-  const getAllChatflowsOfAdmin = useApi(chatflowsApi.getAllChatflowsOfAdmin)
-  const getAllChatflowsOfAdminGroup = useApi(chatflowsApi.getAllChatflowsOfAdminGroup)
-
+  const getPersonalChatflows = useApi(chatflowsApi.getPersonalChatflows)
   const [view, setView] = useState(localStorage.getItem('flowDisplayStyle') || 'card')
 
   const handleChangeTab = (event, newValue) => {
     setValue(newValue)
+    handleResetState()
   }
 
   const handleChange = (event, nextView) => {
@@ -60,13 +59,16 @@ const Chatflows = () => {
     setView(nextView)
   }
 
-  const onSearchChange = (event) => {
-    setSearch(event.target.value)
+  const onSearchChange = async (event) => {
+    setCurrentPage(1)
+    if (value === 0) await getAllChatflowsApi.request(1, 20, event.target.value)
+    if (value === 2) await getPersonalChatflows.request(user.id, 1, 20, event.target.value)
   }
 
   const filterFlows = (data) => {
-    const searchLower = search.toLowerCase()
-    return data.name.toLowerCase().includes(searchLower) || (data.category && data.category.toLowerCase().includes(searchLower))
+    // const searchLower = search.toLowerCase()
+    // return data.name.toLowerCase().includes(searchLower) || (data.category && data.category.toLowerCase().includes(searchLower))
+    return data
   }
 
   const addNew = () => {
@@ -77,19 +79,22 @@ const Chatflows = () => {
     navigate(`/canvas/${selectedChatflow.id}`)
   }
 
+  const handleResetState = () => {
+    setCurrentPage(1)
+    setSearch('')
+  }
+
   useEffect(() => {
     if (isLogin && user) {
-      getAllChatflowsApi.request()
-      getAllPublicChatflows.request()
-      if (isMasterAdmin) getAllChatflowsOfAdmin.request()
-      if (isAdmin || isUser) getAllChatflowsOfAdminGroup.request(user.groupname)
+      getAllChatflowsApi.request(currentPage, 20, search)
+      getPersonalChatflows.request(user.id, currentPage, 20, search)
     }
   }, [isLogin, user])
 
   useEffect(() => {
     if (getAllChatflowsApi.data) {
       try {
-        const chatflows = getAllChatflowsApi.data
+        const chatflows = getAllChatflowsApi.data.data
         const images = {}
         chatflows.forEach((chatflow) => {
           const flowData = JSON.parse(chatflow.flowData)
@@ -112,13 +117,12 @@ const Chatflows = () => {
           <ViewHeader
             onSearchChange={onSearchChange}
             search={true}
-            searchPlaceholder='Search Name or Category'
+            searchPlaceholder='tìm theo tên người dùng hoặc tên flow'
             title={
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={value} onChange={handleChangeTab} aria-label='basic tabs example'>
-                  {isLogin && <Tab label={isMasterAdmin ? 'Master Admin' : user.groupname} {...a11yProps(0)} />}
-                  <Tab label='Công bố' {...a11yProps(1)} />
-                  <Tab label='Cá nhân' {...a11yProps(2)} />
+                  <Tab label='Tất cả' {...a11yProps(0)} />
+                  <Tab label='Cá nhân' {...a11yProps(1)} />
                 </Tabs>
               </Box>
             }
@@ -163,60 +167,44 @@ const Chatflows = () => {
           <CustomTabPanel value={value} index={0}>
             {isLogin ? (
               <RenderContent
-                data={isAdmin || isUser ? getAllChatflowsOfAdminGroup.data : getAllChatflowsOfAdmin.data}
-                // isLoading={isLoading}
-                isLoading={getAllChatflowsOfAdminGroup.loading || getAllChatflowsOfAdmin.loading}
-                filterFunction={filterFlows}
-                goToCanvas={goToCanvas}
-                images={images}
-                view={view}
-                setError={setError}
-                updateFlowsApi={
-                  isAdmin || isUser
-                    ? {
-                        request: async () => {
-                          return await getAllChatflowsOfAdminGroup.request(user.groupname)
-                        }
-                      }
-                    : getAllChatflowsOfAdmin
-                }
-                isAdmin={isMasterAdmin || isAdmin}
-                isUser={isUser}
-                msgEmpty={`Người dùng chưa tạo chatflow nào trong nhóm ${user.groupname}, tạo mới chatflow`}
-              />
-            ) : (
-              <div>Đăng nhập để xem danh sách Chatflows</div>
-            )}
-          </CustomTabPanel>
-          <CustomTabPanel value={value} index={1}>
-            {isLogin ? (
-              <RenderContent
-                data={getAllPublicChatflows.data}
-                // isLoading={isLoading}
-                isLoading={getAllPublicChatflows.loading}
-                filterFunction={filterFlows}
-                goToCanvas={goToCanvas}
-                images={images}
-                view={view}
-                setError={setError}
-                updateFlowsApi={getAllPublicChatflows}
-              />
-            ) : (
-              <div>Đăng nhập để xem danh sách Chatflows</div>
-            )}
-          </CustomTabPanel>
-          <CustomTabPanel value={value} index={2}>
-            {isLogin ? (
-              <RenderContent
-                data={getAllChatflowsApi.data}
-                // isLoading={isLoading}
+                data={getAllChatflowsApi?.data?.data}
                 isLoading={getAllChatflowsApi.loading}
                 filterFunction={filterFlows}
                 goToCanvas={goToCanvas}
                 images={images}
                 view={view}
                 setError={setError}
-                updateFlowsApi={getAllChatflowsApi}
+                updateFlowsApi={{
+                  request: async ({ currentPageInput = currentPage } = {}) =>
+                    await getAllChatflowsApi.request(currentPageInput || currentPage, 20, search)
+                }}
+                pagination={getAllChatflowsApi?.data?.pagination}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+              />
+            ) : (
+              <div>Đăng nhập để xem danh sách Chatflows</div>
+            )}
+          </CustomTabPanel>
+
+          <CustomTabPanel value={value} index={1}>
+            {isLogin ? (
+              <RenderContent
+                data={getPersonalChatflows?.data?.data}
+                isLoading={getPersonalChatflows.loading}
+                filterFunction={filterFlows}
+                goToCanvas={goToCanvas}
+                W
+                images={images}
+                view={view}
+                setError={setError}
+                updateFlowsApi={{
+                  request: async ({ currentPageInput = currentPage } = {}) =>
+                    await getPersonalChatflows.request(user.id, currentPageInput || currentPage, 20, search)
+                }}
+                pagination={getAllChatflowsApi?.data?.pagination}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
               />
             ) : (
               <div>Đăng nhập để xem danh sách Chatflows</div>
