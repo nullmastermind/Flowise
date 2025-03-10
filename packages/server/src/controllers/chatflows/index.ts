@@ -215,6 +215,15 @@ const getSinglePublicChatbotConfig = async (req: Request, res: Response, next: N
   }
 }
 
+const getPersonalChatflows = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const apiResponse = await chatflowsService.getPersonalChatflows(req)
+    return res.json(apiResponse)
+  } catch (error) {
+    next(error)
+  }
+}
+
 export default {
   checkIfChatflowIsValidForStreaming,
   checkIfChatflowIsValidForUploads,
@@ -229,5 +238,6 @@ export default {
   getSinglePublicChatflow,
   getSinglePublicChatbotConfig,
   getControlChatflowsOfAdmin,
-  getControlChatflowsOfAdminGroup
+  getControlChatflowsOfAdminGroup,
+  getPersonalChatflows
 }
