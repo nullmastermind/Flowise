@@ -14,7 +14,7 @@ import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { utilGetUploadsConfig } from '../../utils/getUploadsConfig'
 import logger from '../../utils/logger'
 import { FLOWISE_METRIC_COUNTERS, FLOWISE_COUNTER_STATUS } from '../../Interface.Metrics'
-import { QueryRunner } from 'typeorm'
+import { Brackets, QueryRunner } from 'typeorm'
 import { User, UserRole } from '../../database/entities/User'
 
 // Check if chatflow valid for streaming
@@ -188,9 +188,8 @@ const getAllChatflows = async (req: any) => {
     const { user } = req
     const type = req.query?.type as ChatflowType
     const page = parseInt(req.query?.page as string) || 1
-    const pageSize = parseInt(req.query?.pageSize as string) || 10
-    const userName = req.query?.userName as string
-    const chatflowName = req.query?.chatflowName as string
+    const pageSize = parseInt(req.query?.pageSize as string) || 20
+    const searchQuery = req.query?.searchQuery as string
 
     if (!user.id) {
       throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: chatflowsService.getAllChatflows - User not found')
@@ -226,12 +225,14 @@ const getAllChatflows = async (req: any) => {
       query = query.andWhere('cf.type = :type', { type })
     }
 
-    if (userName) {
-      query = query.andWhere('user.name LIKE :userName', { userName: `%${userName}%` })
-    }
-
-    if (chatflowName) {
-      query = query.andWhere('cf.name LIKE :chatflowName', { chatflowName: `%${chatflowName}%` })
+    if (searchQuery) {
+      query = query.andWhere(
+        new Brackets((qb) => {
+          qb.where('user.username LIKE :username', { username: `%${searchQuery.trim()}%` }).orWhere('cf.name LIKE :chatflowName', {
+            chatflowName: `%${searchQuery.trim()}%`
+          })
+        })
+      )
     }
 
     const totalCount = await query.getCount()
@@ -253,6 +254,7 @@ const getAllChatflows = async (req: any) => {
       }
     }
   } catch (error) {
+    console.log('🚀 ~ getAllChatflows ~ error:', error)
     throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: chatflowsService.getAllChatflows - ${getErrorMessage(error)}`)
   }
 }

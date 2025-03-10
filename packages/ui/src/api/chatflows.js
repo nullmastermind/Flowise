@@ -1,10 +1,16 @@
 import client from './client'
 
-const getAllChatflows = (page = 1, pageSize = 10, userName = '', chatflowName = '') =>
-  client.get(`/chatflows?type=CHATFLOW&page=${page}&pageSize=${pageSize}&userName=${userName}&chatflowName=${chatflowName}`)
+const getAllChatflows = (page = 1, pageSize = 20, searchQuery = '') =>
+  client.get(`/chatflows?type=CHATFLOW&page=${page}&pageSize=${pageSize}&searchQuery=${searchQuery}`)
 
-const getAllAgentflows = (page = 1, pageSize = 10, userName = '', chatflowName = '') =>
-  client.get(`/chatflows?type=MULTIAGENT&page=${page}&pageSize=${pageSize}&userName=${userName}&chatflowName=${chatflowName}`)
+const getAllAgentflows = (page = 1, pageSize = 20, searchQuery = '') =>
+  client.get(`/chatflows?type=MULTIAGENT&page=${page}&pageSize=${pageSize}&searchQuery=${searchQuery}`)
+
+const getPersonalChatflows = (userId, page = 1, pageSize = 20, searchQuery = '') =>
+  client.get(`/chatflows/user/${userId}?type=CHATFLOW&page=${page}&pageSize=${pageSize}&searchQuery=${searchQuery}`)
+
+const getPersonalAgentflows = (userId, page = 1, pageSize = 20, searchQuery = '') =>
+  client.get(`/chatflows/user/${userId}?type=MULTIAGENT&page=${page}&pageSize=${pageSize}&searchQuery=${searchQuery}`)
 
 const getAllPublicChatflows = () => client.get('/chatflows/public/all?type=CHATFLOW')
 
@@ -50,5 +56,7 @@ export default {
   getAllChatflowsOfAdmin,
   getAllAgentflowsOfAdmin,
   getAllChatflowsOfAdminGroup,
-  getAllAgentOfAdminGroup
+  getAllAgentOfAdminGroup,
+  getPersonalChatflows,
+  getPersonalAgentflows
 }

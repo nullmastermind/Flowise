@@ -31,12 +31,15 @@ import RenderContent from '../chatflows/RenderContent'
 const Agentflows = () => {
   const [value, setValue] = useState(0)
   const user = useSelector((state) => state.user)
-  const isMasterAdmin = user?.role === 'MASTER_ADMIN'
-  const isUser = user?.role === 'USER'
-  const isAdmin = user?.role === 'ADMIN'
   const isLogin = Boolean(user?.id)
   const navigate = useNavigate()
   const theme = useTheme()
+
+  // const isMasterAdmin = user?.role === 'MASTER_ADMIN'
+  // const isUser = user?.role === 'USER'
+  // const isAdmin = user?.role === 'ADMIN'
+
+  const [currentPage, setCurrentPage] = useState(1)
 
   // const [isLoading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -44,14 +47,13 @@ const Agentflows = () => {
   const [search, setSearch] = useState('')
 
   const getAllAgentflows = useApi(chatflowsApi.getAllAgentflows)
-  const getAllPublicAgentflows = useApi(chatflowsApi.getAllPublicAgentflows)
-  const getAllAgentflowsOfMasterAdmin = useApi(chatflowsApi.getAllAgentflowsOfAdmin)
-  const getAllAgentOfAdminGroup = useApi(chatflowsApi.getAllAgentOfAdminGroup)
+  const getPersonalAgentflows = useApi(chatflowsApi.getPersonalAgentflows)
 
   const [view, setView] = useState(localStorage.getItem('flowDisplayStyle') || 'card')
 
   const handleChangeTab = (event, newValue) => {
     setValue(newValue)
+    handleResetState()
   }
 
   const handleChange = (event, nextView) => {
@@ -60,15 +62,18 @@ const Agentflows = () => {
     setView(nextView)
   }
 
-  const onSearchChange = (event) => {
-    setSearch(event.target.value)
+  const onSearchChange = async (event) => {
+    setCurrentPage(1)
+    if (value === 0) await getAllAgentflows.request(1, 20, event.target.value)
+    if (value === 2) await getPersonalAgentflows.request(user.id, 1, 20, event.target.value)
   }
 
   function filterFlows(data) {
-    return (
-      data.name.toLowerCase().indexOf(search.toLowerCase()) > -1 ||
-      (data.category && data.category.toLowerCase().indexOf(search.toLowerCase()) > -1)
-    )
+    // return (
+    //   data.name.toLowerCase().indexOf(search.toLowerCase()) > -1 ||
+    //   (data.category && data.category.toLowerCase().indexOf(search.toLowerCase()) > -1)
+    // )
+    return data
   }
 
   const addNew = () => {
@@ -79,12 +84,15 @@ const Agentflows = () => {
     navigate(`/agentcanvas/${selectedAgentflow.id}`)
   }
 
+  const handleResetState = () => {
+    setCurrentPage(1)
+    setSearch('')
+  }
+
   useEffect(() => {
     if (isLogin && user) {
-      getAllAgentflows.request()
-      getAllPublicAgentflows.request()
-      if (isMasterAdmin) getAllAgentflowsOfMasterAdmin.request()
-      if (isAdmin || isUser) getAllAgentOfAdminGroup.request(user.groupname)
+      getAllAgentflows.request(currentPage, 20, search)
+      getPersonalAgentflows.request(user.id, currentPage, 20, search)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLogin, user])
@@ -92,7 +100,7 @@ const Agentflows = () => {
   useEffect(() => {
     if (getAllAgentflows.data) {
       try {
-        const agentflows = getAllAgentflows.data
+        const agentflows = getAllAgentflows.data.data
         const images = {}
         for (let i = 0; i < agentflows.length; i += 1) {
           const flowDataStr = agentflows[i].flowData
@@ -122,13 +130,12 @@ const Agentflows = () => {
           <ViewHeader
             onSearchChange={onSearchChange}
             search={true}
-            searchPlaceholder='Search Name or Category'
+            searchPlaceholder='tìm theo tên người dùng hoặc tên flow'
             title={
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={value} onChange={handleChangeTab} aria-label='basic tabs example'>
-                  {isLogin && <Tab label={isMasterAdmin ? 'Master Admin' : user.groupname} {...a11yProps(0)} />}
-                  <Tab label='Công bố' {...a11yProps(1)} />
-                  <Tab label='Cá nhân' {...a11yProps(2)} />
+                  <Tab label='Tất cả' {...a11yProps(0)} />
+                  <Tab label='Cá nhân' {...a11yProps(1)} />
                 </Tabs>
               </Box>
             }
@@ -173,27 +180,22 @@ const Agentflows = () => {
           <CustomTabPanel value={value} index={0}>
             {isLogin ? (
               <RenderContent
-                data={isAdmin || isUser ? getAllAgentOfAdminGroup.data : getAllAgentflowsOfMasterAdmin.data}
+                data={getAllAgentflows?.data?.data}
                 // isLoading={isLoading}
-                isLoading={getAllAgentOfAdminGroup.loading || getAllAgentflowsOfMasterAdmin.loading}
+                isLoading={getAllAgentflows.loading}
                 filterFunction={filterFlows}
                 goToCanvas={goToCanvas}
                 images={images}
                 view={view}
                 setError={setError}
-                updateFlowsApi={
-                  isAdmin || isUser
-                    ? {
-                        request: async () => {
-                          return await getAllAgentOfAdminGroup.request(user.groupname)
-                        }
-                      }
-                    : getAllAgentflowsOfMasterAdmin
-                }
-                isAdmin={isMasterAdmin || isAdmin}
-                isUser={isUser}
-                msgEmpty={`Người dùng chưa tạo agentflows nào trong nhóm ${user.groupname}, tạo mới agentflows`}
+                updateFlowsApi={{
+                  request: async ({ currentPageInput = currentPage } = {}) =>
+                    await getAllAgentflows.request(currentPageInput || currentPage, 20, search)
+                }}
                 isAgentCanvas
+                pagination={getAllAgentflows?.data?.pagination}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
               />
             ) : (
               <div>Đăng nhập để xem danh sách Agents</div>
@@ -202,33 +204,21 @@ const Agentflows = () => {
           <CustomTabPanel value={value} index={1}>
             {isLogin ? (
               <RenderContent
-                data={getAllPublicAgentflows.data}
+                data={getPersonalAgentflows?.data?.data}
                 // isLoading={isLoading}
-                isLoading={getAllPublicAgentflows.loading}
+                isLoading={getPersonalAgentflows.loading}
                 filterFunction={filterFlows}
                 goToCanvas={goToCanvas}
                 images={images}
                 view={view}
                 setError={setError}
-                updateFlowsApi={getAllPublicAgentflows}
-                isAgentCanvas
-              />
-            ) : (
-              <div>Đăng nhập để xem danh sách Agents</div>
-            )}
-          </CustomTabPanel>
-          <CustomTabPanel value={value} index={2}>
-            {isLogin ? (
-              <RenderContent
-                data={getAllAgentflows.data}
-                // isLoading={isLoading}
-                isLoading={getAllAgentflows.loading}
-                filterFunction={filterFlows}
-                goToCanvas={goToCanvas}
-                images={images}
-                view={view}
-                setError={setError}
-                updateFlowsApi={getAllAgentflows}
+                updateFlowsApi={{
+                  request: async ({ currentPageInput = currentPage } = {}) =>
+                    await getPersonalAgentflows.request(user.id, currentPageInput || currentPage, 20, search)
+                }}
+                pagination={getPersonalAgentflows?.data?.pagination}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
                 isAgentCanvas
               />
             ) : (
