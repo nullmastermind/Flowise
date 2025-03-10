@@ -1,16 +1,18 @@
 import client from './client'
 
-const getAllChatflows = () => client.get('/chatflows?type=CHATFLOW')
+const getAllChatflows = (page = 1, pageSize = 10, userName = '', chatflowName = '') =>
+  client.get(`/chatflows?type=CHATFLOW&page=${page}&pageSize=${pageSize}&userName=${userName}&chatflowName=${chatflowName}`)
+
+const getAllAgentflows = (page = 1, pageSize = 10, userName = '', chatflowName = '') =>
+  client.get(`/chatflows?type=MULTIAGENT&page=${page}&pageSize=${pageSize}&userName=${userName}&chatflowName=${chatflowName}`)
 
 const getAllPublicChatflows = () => client.get('/chatflows/public/all?type=CHATFLOW')
+
+const getAllPublicAgentflows = () => client.get('/chatflows/public/all?type=MULTIAGENT')
 
 const getAllChatflowsOfAdmin = () => client.get('/chatflows/admin/all?type=CHATFLOW')
 
 const getAllChatflowsOfAdminGroup = (groupname) => client.get(`/chatflows/admin/group?type=CHATFLOW&groupname=${groupname}`)
-
-const getAllAgentflows = () => client.get('/chatflows?type=MULTIAGENT')
-
-const getAllPublicAgentflows = () => client.get('/chatflows/public/all?type=MULTIAGENT')
 
 const getAllAgentflowsOfAdmin = () => client.get('/chatflows/admin/all?type=MULTIAGENT')
 
