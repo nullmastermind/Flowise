@@ -733,42 +733,43 @@ async function agentNode(
     state.messages = restructureMessages(llm, state)
 
     // Check if model supports vision and add images to messages if it does
-    if (llmSupportsVision(llm) && options.uploads && options.uploads.length && options.uploads[0].mime.startsWith('image/')) {
-      const contents = await getFileFromStorage(options.uploads[0].name, options.chatflowid, options.chatId)
-      // as the image is stored in the server, read the file and convert it to base64
-      const bf = 'data:' + options.uploads[0].mime + ';base64,' + contents.toString('base64')
+    if (llmSupportsVision(llm) && options.uploads && options.uploads.length && options?.uploads[0]?.mime.startsWith('image/')) {
+      const imageContents = []
 
-      const imageMessage = new HumanMessage({
-        content: [
-          {
+      // Process all images in uploads
+      for (const upload of options.uploads) {
+        if (upload.mime.startsWith('image/')) {
+          const contents = await getFileFromStorage(upload.name, options.chatflowid, options.chatId)
+          // Convert image to base64
+          const bf = 'data:' + upload.mime + ';base64,' + contents.toString('base64')
+          imageContents.push({
             type: 'image_url',
             image_url: {
               url: bf,
               detail: 'low'
             }
-          }
-        ]
-      })
-
-      // Add the image message to state
-      const messages = state.messages as unknown as BaseMessage[]
-
-      // Try to find and replace the last human message
-      let imageAdded = false
-      for (let i = messages.length - 1; i >= 0; i--) {
-        if (messages[i]._getType() === 'human') {
-          messages[i] = imageMessage
-          imageAdded = true
-          break
+          })
         }
       }
 
-      // If no human message was found, add the new one
-      if (!imageAdded) {
-        messages.push(imageMessage)
-      }
+      if (imageContents.length > 0) {
+        // Create a message with all images
+        const imageMessage = new HumanMessage({
+          content: imageContents
+        })
 
-      state.messages = messages
+        // Add the image message to state
+        const messages = state.messages as unknown as BaseMessage[]
+
+        // Insert the image message before the last message
+        if (messages.length > 0) {
+          messages.splice(messages.length - 1, 0, imageMessage)
+        } else {
+          messages.push(imageMessage)
+        }
+
+        state.messages = messages
+      }
     }
 
     let result = await agent.invoke({ ...state, signal: abortControllerSignal.signal }, config)

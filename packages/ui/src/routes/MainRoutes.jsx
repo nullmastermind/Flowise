@@ -3,6 +3,7 @@ import { lazy } from 'react'
 // project imports
 import MainLayout from '@/layout/MainLayout'
 import Loadable from '@/ui-component/loading/Loadable'
+import { Navigate } from 'react-router-dom'
 
 // chatflows routing
 const Chatflows = Loadable(lazy(() => import('@/views/chatflows')))
@@ -44,7 +45,7 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <Chatflows />
+      element: <Navigate to='/chatflows' />
     },
     {
       path: '/chatflows',

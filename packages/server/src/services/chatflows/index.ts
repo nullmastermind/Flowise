@@ -14,7 +14,7 @@ import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { utilGetUploadsConfig } from '../../utils/getUploadsConfig'
 import logger from '../../utils/logger'
 import { FLOWISE_METRIC_COUNTERS, FLOWISE_COUNTER_STATUS } from '../../Interface.Metrics'
-import { QueryRunner } from 'typeorm'
+import { Brackets, QueryRunner } from 'typeorm'
 import { User, UserRole } from '../../database/entities/User'
 
 // Check if chatflow valid for streaming
@@ -183,35 +183,135 @@ const getAllPublicChatflows = async (req: any): Promise<any[]> => {
   }
 }
 
-const getAllChatflows = async (req: any): Promise<any[]> => {
+const getAllChatflows = async (req: any) => {
   try {
-    const type = req.query?.type as ChatflowType
     const { user } = req
+    const type = req.query?.type as ChatflowType
+    const page = parseInt(req.query?.page as string) || 1
+    const pageSize = parseInt(req.query?.pageSize as string) || 20
+    const searchQuery = req.query?.searchQuery as string
+
     if (!user.id) {
-      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: chatflowsService.getAllChatflows - User not found')
     }
 
     const appServer = getRunningExpressApp()
     const foundUser = await appServer.AppDataSource.getRepository(User).findOneBy({ id: user.id })
     if (!foundUser) {
-      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: documentStoreServices.getAllDocumentStores - User not found')
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: chatflowsService.getAllChatflows - User not found')
     }
 
-    const query = appServer.AppDataSource.getRepository(ChatFlow)
-      .createQueryBuilder('cf')
-      .where('cf.userId = :userId', { userId: foundUser.id })
+    const role = foundUser.role
+    let query = appServer.AppDataSource.getRepository(ChatFlow).createQueryBuilder('cf').leftJoinAndSelect('cf.user', 'user')
+
+    // Role-based access control
+    if (role === UserRole.MASTER_ADMIN) {
+      // Master admin can see all flows
+    } else if (role === UserRole.ADMIN) {
+      // Admin can see their own flows and public flows
+      query = query.where('(cf.userId = :userId OR cf.isPublic = :isPublic)', {
+        userId: foundUser.id,
+        isPublic: true
+      })
+    } else {
+      // Regular users can see only their own flows and public flows
+      query = query.where('(cf.userId = :userId OR cf.isPublic = :isPublic)', {
+        userId: foundUser.id,
+        isPublic: true
+      })
+    }
 
     if (type) {
-      query.andWhere('cf.type = :type', { type })
+      query = query.andWhere('cf.type = :type', { type })
     }
 
-    const dbResponse = await query.getMany()
-    return dbResponse.map((chatflow) => ({
-      ...chatflow,
-      user: foundUser
-    }))
+    if (searchQuery) {
+      query = query.andWhere(
+        new Brackets((qb) => {
+          qb.where('user.username LIKE :username', { username: `%${searchQuery.trim()}%` }).orWhere('cf.name LIKE :chatflowName', {
+            chatflowName: `%${searchQuery.trim()}%`
+          })
+        })
+      )
+    }
+
+    const totalCount = await query.getCount()
+
+    query = query
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .orderBy('cf.updatedDate', 'DESC')
+
+    const chatflows = await query.getMany()
+
+    return {
+      data: chatflows,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize)
+      }
+    }
   } catch (error) {
+    console.log('🚀 ~ getAllChatflows ~ error:', error)
     throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: chatflowsService.getAllChatflows - ${getErrorMessage(error)}`)
+  }
+}
+
+const getPersonalChatflows = async (req: any) => {
+  try {
+    const type = req.query?.type as ChatflowType
+    const page = parseInt(req.query?.page as string) || 1
+    const pageSize = parseInt(req.query?.pageSize as string) || 10
+    const { user } = req
+
+    if (!user.id) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: chatflowsService.getPersonalChatflows - User not found')
+    }
+
+    const appServer = getRunningExpressApp()
+    const foundUser = await appServer.AppDataSource.getRepository(User).findOneBy({ id: user.id })
+    if (!foundUser) {
+      throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Error: chatflowsService.getPersonalChatflows - User not found')
+    }
+
+    // Query to get only chatflows created by the current user
+    let query = appServer.AppDataSource.getRepository(ChatFlow)
+      .createQueryBuilder('cf')
+      .leftJoinAndSelect('cf.user', 'user')
+      .where('cf.userId = :userId', { userId: foundUser.id })
+
+    // Filter by type if provided
+    if (type) {
+      query = query.andWhere('cf.type = :type', { type })
+    }
+
+    // Get total count for pagination
+    const totalCount = await query.getCount()
+
+    // Apply pagination
+    query = query
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .orderBy('cf.updatedDate', 'DESC')
+
+    const chatflows = await query.getMany()
+
+    return {
+      data: chatflows,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize)
+      }
+    }
+  } catch (error) {
+    throw new InternalFlowiseError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      `Error: chatflowsService.getPersonalChatflows - ${getErrorMessage(error)}`
+    )
   }
 }
 
@@ -444,5 +544,6 @@ export default {
   getSinglePublicChatflow,
   getSinglePublicChatbotConfig,
   getControlChatflowsOfAdmin,
-  getControlChatflowsOfAdminGroup
+  getControlChatflowsOfAdminGroup,
+  getPersonalChatflows
 }
