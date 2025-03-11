@@ -28,7 +28,7 @@
     "cmcts-c-agent-embedding": "1.0.13",
     "cmcts-c-agent-embedding-react": "1.0.13",
     "clsx": "^1.1.1",
-    "dccxx-s3-explorer": "^1.0.38",
+    "dccxx-s3-explorer": "^1.0.39",
     "dotenv": "^16.0.0",
     "elkjs": "^0.9.3",
     "flowise-react-json-view": "*",
