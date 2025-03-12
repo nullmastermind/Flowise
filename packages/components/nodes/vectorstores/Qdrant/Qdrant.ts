@@ -296,7 +296,7 @@ class Qdrant_VectorStores implements INode {
                   points: ids
                 })
               } catch (e) {
-                console.error('Failed to delete')
+                console.error('Không thể xoá')
               }
             }
           }
@@ -373,7 +373,7 @@ class Qdrant_VectorStores implements INode {
               points: ids
             })
           } catch (e) {
-            console.error('Failed to delete')
+            console.error('Không thể xoá')
           }
         }
       }

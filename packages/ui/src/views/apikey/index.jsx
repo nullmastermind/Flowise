@@ -245,7 +245,7 @@ const APIKey = () => {
 
   const addNew = () => {
     const dialogProp = {
-      title: 'Add New API Key',
+      title: 'Thêm mới API Key',
       type: 'ADD',
       cancelButtonName: 'Cancel',
       confirmButtonName: 'Add',
@@ -281,13 +281,13 @@ const APIKey = () => {
 
   const deleteKey = async (key) => {
     const confirmPayload = {
-      title: `Delete`,
+      title: `Xoá key`,
       description:
         key.chatFlows.length === 0
-          ? `Delete key [${key.keyName}] ? `
-          : `Delete key [${key.keyName}] ?\n There are ${key.chatFlows.length} chatflows using this key.`,
-      confirmButtonName: 'Delete',
-      cancelButtonName: 'Cancel',
+          ? `Xoá key [${key.keyName}] ? `
+          : `Xoá key [${key.keyName}] ?\n Có ${key.chatFlows.length} chatflows đang sử dụng key này.`,
+      confirmButtonName: 'Xoá',
+      cancelButtonName: 'Đóng',
       customBtnId: 'btn_initiateDeleteApiKey'
     }
     const isConfirmed = await confirm(confirmPayload)
@@ -312,9 +312,7 @@ const APIKey = () => {
         }
       } catch (error) {
         enqueueSnackbar({
-          message: `Failed to delete API key: ${
-            typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-          }`,
+          message: `Không thể xoá API key: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'error',
@@ -365,7 +363,7 @@ const APIKey = () => {
           <ErrorBoundary error={error} />
         ) : (
           <Stack flexDirection='column' sx={{ gap: 3 }}>
-            <ViewHeader onSearchChange={onSearchChange} search={true} searchPlaceholder='Search API Keys' title='API Keys'>
+            <ViewHeader onSearchChange={onSearchChange} search={true} searchPlaceholder='Tìm kiếm API Keys' title='API Keys'>
               <Button
                 disabled={!isLogin}
                 variant='outlined'
@@ -374,7 +372,7 @@ const APIKey = () => {
                 startIcon={<IconFileUpload />}
                 id='btn_importApiKeys'
               >
-                Import
+                Nhúng
               </Button>
               <StyledButton
                 disabled={!isLogin}
@@ -384,7 +382,7 @@ const APIKey = () => {
                 startIcon={<IconPlus />}
                 id='btn_createApiKey'
               >
-                Create Key
+                Tạo Key
               </StyledButton>
             </ViewHeader>
 
@@ -410,10 +408,10 @@ const APIKey = () => {
                         }}
                       >
                         <TableRow>
-                          <StyledTableCell>Key Name</StyledTableCell>
+                          <StyledTableCell>Tên</StyledTableCell>
                           <StyledTableCell>API Key</StyledTableCell>
-                          <StyledTableCell>Usage</StyledTableCell>
-                          <StyledTableCell>Created</StyledTableCell>
+                          <StyledTableCell>Được sử dụng</StyledTableCell>
+                          <StyledTableCell>Thời gian tạo</StyledTableCell>
                           <StyledTableCell> </StyledTableCell>
                           <StyledTableCell> </StyledTableCell>
                         </TableRow>

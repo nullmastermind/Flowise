@@ -243,14 +243,14 @@ class MeilisearchRetriever_node implements INode {
     try {
       const response = await fetch(experimentalEndpoint, experimentalOptions)
       if (!response.ok) {
-        throw new Error(`Failed to enable vectorStore: ${response.statusText}`)
+        throw new Error(`Không thể kích hoạt vectorStore: ${response.statusText}.`)
       }
 
       const data = await response.json()
 
       const vectorStoreEnabled = data.vectorStore
       if (vectorStoreEnabled !== true) {
-        throw new Error('Failed to enable vectorStore, vectorStrore property returned is not true')
+        throw new Error('Không thể kích hoạt vectorStore, thuộc tính vectorStore trả về không phải true.')
       }
     } catch (error) {
       console.error('Error enabling vectorStore feature:', error)

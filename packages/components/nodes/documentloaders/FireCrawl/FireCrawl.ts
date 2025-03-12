@@ -97,7 +97,7 @@ class FirecrawlApp {
         if (responseData.success) {
           return responseData
         } else {
-          throw new Error(`Failed to scrape URL. Error: ${responseData.error}`)
+          throw new Error(`Không thể trích xuất dữ liệu từ URL. Lỗi: ${responseData.error}`)
         }
       } else {
         this.handleError(response, 'scrape URL')
@@ -105,7 +105,7 @@ class FirecrawlApp {
     } catch (error: any) {
       throw new Error(error.message)
     }
-    return { success: false, error: 'Internal server error.' }
+    return { success: false, error: 'Lỗi máy chủ nội bộ.' }
   }
 
   async crawlUrl(
@@ -182,10 +182,10 @@ class FirecrawlApp {
 
   private handleError(response: AxiosResponse, action: string): void {
     if ([402, 408, 409, 500].includes(response.status)) {
-      const errorMessage: string = response.data.error || 'Unknown error occurred'
-      throw new Error(`Failed to ${action}. Status code: ${response.status}. Error: ${errorMessage}`)
+      const errorMessage: string = response.data.error || 'Đã xảy ra lỗi không xác định.'
+      throw new Error(`Không thể ${action}. Mã trạng thái: ${response.status}. Lỗi: ${errorMessage}`)
     } else {
-      throw new Error(`Unexpected error occurred while trying to ${action}. Status code: ${response.status}`)
+      throw new Error(`Đã xảy ra lỗi không mong muốn khi cố gắng ${action}. Mã trạng thái: ${response.status}.`)
     }
   }
 }
@@ -227,14 +227,14 @@ class FireCrawlLoader extends BaseDocumentLoader {
     if (this.mode === 'scrape') {
       const response = await app.scrapeUrl(this.url, this.params)
       if (!response.success) {
-        throw new Error(`Firecrawl: Failed to scrape URL. Error: ${response.error}`)
+        throw new Error(`Firecrawl: Không thể trích xuất dữ liệu từ URL. Lỗi: ${response.error}`)
       }
       firecrawlDocs = [response.data as FirecrawlDocument]
     } else if (this.mode === 'crawl') {
       const response = await app.crawlUrl(this.url, this.params, true)
       firecrawlDocs = response as FirecrawlDocument[]
     } else {
-      throw new Error(`Unrecognized mode '${this.mode}'. Expected one of 'crawl', 'scrape'.`)
+      throw new Error(`Chế độ '${this.mode}' không được nhận diện. Giá trị mong muốn là một trong các chế độ: 'crawl', 'scrape'.`)
     }
 
     return firecrawlDocs.map(

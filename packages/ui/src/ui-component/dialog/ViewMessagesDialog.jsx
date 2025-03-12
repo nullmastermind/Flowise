@@ -264,7 +264,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
 
       await chatmessageApi.deleteChatmessage(chatflowid, obj)
       enqueueSnackbar({
-        message: 'Succesfully deleted messages',
+        message: 'Xoá tin nhắn thành công',
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'success',

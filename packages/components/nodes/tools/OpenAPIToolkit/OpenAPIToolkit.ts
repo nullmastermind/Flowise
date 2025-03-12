@@ -90,14 +90,14 @@ class OpenAPIToolkit_Tools implements INode {
       data = load(utf8String)
     }
     if (!data) {
-      throw new Error('Failed to load OpenAPI spec')
+      throw new Error('Không thể tải OpenAPI spec.')
     }
 
     const _data: any = await $RefParser.dereference(data)
 
     const baseUrl = _data.servers[0]?.url
     if (!baseUrl) {
-      throw new Error('OpenAPI spec does not contain a server URL')
+      throw new Error('OpenAPI spec không chứa URL máy chủ.')
     }
 
     const appDataSource = options.appDataSource as DataSource

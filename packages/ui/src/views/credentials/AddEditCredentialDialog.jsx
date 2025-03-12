@@ -120,7 +120,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
       const createResp = await credentialsApi.createCredential(obj)
       if (createResp.data) {
         enqueueSnackbar({
-          message: 'New Credential added',
+          message: 'Đã thêm thông tin xác thực',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -136,7 +136,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
     } catch (error) {
       if (setError) setError(error)
       enqueueSnackbar({
-        message: `Failed to add new Credential: ${
+        message: `Không thể thêm thông tin xác thực: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {
@@ -172,7 +172,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
       const saveResp = await credentialsApi.updateCredential(credential.id, saveObj)
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Credential saved',
+          message: 'Đã lưu!',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -188,7 +188,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
     } catch (error) {
       if (setError) setError(error)
       enqueueSnackbar({
-        message: `Failed to save Credential: ${
+        message: `Không thể lưu thông tin xác thực: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {

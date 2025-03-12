@@ -546,7 +546,7 @@ class S3_DocumentLoaders implements INode {
 
         fsDefault.writeFileSync(filePath, objectData)
       } catch (e: any) {
-        throw new Error(`Failed to download file ${keyName} from S3 bucket ${bucketName}: ${e.message}`)
+        throw new Error(`Không thể tải xuống tệp ${keyName} từ S3 bucket ${bucketName}: ${e.message}`)
       }
 
       try {
@@ -620,7 +620,7 @@ class S3_DocumentLoaders implements INode {
         }
       } catch {
         fsDefault.rmSync(path.dirname(filePath), { recursive: true })
-        throw new Error(`Failed to load file ${filePath} using unstructured loader.`)
+        throw new Error(`Không thể tải tệp ${filePath} bằng bộ nạp không có cấu trúc.`)
       }
     }
 

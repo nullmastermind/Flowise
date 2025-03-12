@@ -49,7 +49,7 @@ const FileUpload = ({ dialogProps }) => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'File Upload Configuration Saved',
+          message: 'Đã lưu cấu hình upload tệp.',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -64,7 +64,7 @@ const FileUpload = ({ dialogProps }) => {
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save File Upload Configuration: ${
+        message: `Không thể lưu cấu hình upload tệp: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {

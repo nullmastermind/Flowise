@@ -392,14 +392,14 @@ const NodeInputHandler = ({
   const addAsyncOption = (inputParamName) => {
     if (inputParamName === 'selectedTool') {
       setAsyncOptionEditDialogProps({
-        title: 'Add New Tool',
+        title: 'Thêm mới Tool',
         type: 'ADD',
         cancelButtonName: 'Cancel',
         confirmButtonName: 'Add'
       })
     } else if (inputParamName === 'selectedAssistant') {
       setAsyncOptionEditDialogProps({
-        title: 'Add New Assistant',
+        title: 'Thêm mới Assistant',
         type: 'ADD',
         cancelButtonName: 'Cancel',
         confirmButtonName: 'Add'

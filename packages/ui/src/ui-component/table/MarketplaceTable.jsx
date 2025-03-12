@@ -74,17 +74,17 @@ export const MarketplaceTable = ({
           >
             <TableRow>
               <StyledTableCell sx={{ minWidth: '150px' }} component='th' scope='row' key='0'>
-                Name
+                Tên
               </StyledTableCell>
               <StyledTableCell sx={{ minWidth: '100px' }} component='th' scope='row' key='1'>
-                Type
+                Loại
               </StyledTableCell>
-              <StyledTableCell key='2'>Description</StyledTableCell>
+              <StyledTableCell key='2'>Mô tả</StyledTableCell>
               <StyledTableCell sx={{ minWidth: '100px' }} key='3'>
                 Framework
               </StyledTableCell>
               <StyledTableCell sx={{ minWidth: '100px' }} key='4'>
-                Use cases
+                Trường hợp sử dụng
               </StyledTableCell>
               <StyledTableCell key='5'>Nodes</StyledTableCell>
               <StyledTableCell component='th' scope='row' key='6'>
@@ -92,7 +92,7 @@ export const MarketplaceTable = ({
               </StyledTableCell>
               {onDelete && (
                 <StyledTableCell component='th' scope='row' key='7'>
-                  Delete
+                  Xoá
                 </StyledTableCell>
               )}
             </TableRow>

@@ -47,7 +47,7 @@ const CredentialInputHandler = ({ inputParam, data, onSelect, disabled = false }
       if (componentCredentialsResp.data) {
         if (Array.isArray(componentCredentialsResp.data)) {
           const dialogProp = {
-            title: 'Add New Credential',
+            title: 'Thêm mới Credential',
             componentsCredentials: componentCredentialsResp.data
           }
           setCredentialListDialogProps(dialogProp)

@@ -63,7 +63,7 @@ class SpiderApp {
         if (responseData[0].status) {
           return { success: true, data: responseData[0] }
         } else {
-          throw new Error(`Failed to scrape URL. Error: ${responseData.error}`)
+          throw new Error(`Không thể trích xuất dữ liệu từ URL. Lỗi: ${responseData.error}`)
         }
       } else {
         this.handleError(response, 'scrape URL')
@@ -71,7 +71,7 @@ class SpiderApp {
     } catch (error: any) {
       throw new Error(error.message)
     }
-    return { success: false, error: 'Internal server error.' }
+    return { success: false, error: 'Lỗi máy chủ nội bộ.' }
   }
 
   async crawlUrl(url: string, params: Params | null = null, idempotencyKey?: string): Promise<CrawlResponse | any> {
@@ -88,7 +88,7 @@ class SpiderApp {
     } catch (error: any) {
       throw new Error(error.message)
     }
-    return { success: false, error: 'Internal server error.' }
+    return { success: false, error: 'Lỗi máy chủ nội bộ.' }
   }
 
   private prepareHeaders(idempotencyKey?: string): AxiosRequestHeaders {
@@ -105,10 +105,10 @@ class SpiderApp {
 
   private handleError(response: AxiosResponse, action: string): void {
     if ([402, 408, 409, 500].includes(response.status)) {
-      const errorMessage: string = response.data.error || 'Unknown error occurred'
-      throw new Error(`Failed to ${action}. Status code: ${response.status}. Error: ${errorMessage}`)
+      const errorMessage: string = response.data.error || 'Đã xảy ra lỗi không xác định'
+      throw new Error(`Không thể ${action}. Mã trạng thái: ${response.status}. Lỗi: ${errorMessage}.`)
     } else {
-      throw new Error(`Unexpected error occurred while trying to ${action}. Status code: ${response.status}`)
+      throw new Error(`Đã xảy ra lỗi không mong muốn khi cố gắng ${action}. Mã trạng thái: ${response.status}.`)
     }
   }
 }

@@ -198,7 +198,7 @@ const DocumentStoreDetails = () => {
         setBackdropLoading(false)
         if (deleteResp.data) {
           enqueueSnackbar({
-            message: 'Store, Loader and associated document chunks deleted',
+            message: 'Đã xóa kho lưu trữ, bộ nạp và các phần tài liệu liên quan.',
             options: {
               key: new Date().getTime() + Math.random(),
               variant: 'success',
@@ -215,7 +215,7 @@ const DocumentStoreDetails = () => {
         setBackdropLoading(false)
         setError(error)
         enqueueSnackbar({
-          message: `Failed to delete Document Store: ${
+          message: `Không thể xoá Document Store: ${
             typeof error.response.data === 'object' ? error.response.data.message : error.response.data
           }`,
           options: {
@@ -236,7 +236,7 @@ const DocumentStoreDetails = () => {
         setBackdropLoading(false)
         if (deleteResp.data) {
           enqueueSnackbar({
-            message: 'Loader and associated document chunks deleted',
+            message: 'Đã xóa bộ nạp và các phần tài liệu liên quan.',
             options: {
               key: new Date().getTime() + Math.random(),
               variant: 'success',
@@ -253,7 +253,7 @@ const DocumentStoreDetails = () => {
         setError(error)
         setBackdropLoading(false)
         enqueueSnackbar({
-          message: `Failed to delete Document Loader: ${
+          message: `Không thể xoá Document Loader: ${
             typeof error.response.data === 'object' ? error.response.data.message : error.response.data
           }`,
           options: {
@@ -287,8 +287,8 @@ const DocumentStoreDetails = () => {
 
   const onStoreDelete = (vectorStoreConfig, recordManagerConfig) => {
     const props = {
-      title: `Delete`,
-      description: `Delete Store ${getSpecificDocumentStore.data?.name} ? This will delete all the associated loaders and document chunks.`,
+      title: `Xoá`,
+      description: `Xóa kho lưu trữ ${getSpecificDocumentStore.data?.name}? Thao tác này sẽ xóa tất cả các bộ nạp và các phần tài liệu liên quan.`,
       vectorStoreConfig,
       recordManagerConfig,
       type: 'STORE'
@@ -302,8 +302,8 @@ const DocumentStoreDetails = () => {
     const confirmPayload = {
       title: `Refresh all loaders and upsert all chunks?`,
       description: `This will re-process all loaders and upsert all chunks. This action might take some time.`,
-      confirmButtonName: 'Refresh',
-      cancelButtonName: 'Cancel'
+      confirmButtonName: 'Làm mới',
+      cancelButtonName: 'Đóng'
     }
     const isConfirmed = await confirm(confirmPayload)
 
@@ -314,7 +314,7 @@ const DocumentStoreDetails = () => {
         const resp = await documentsApi.refreshLoader(storeId)
         if (resp.data) {
           enqueueSnackbar({
-            message: 'Document store refresh successfully!',
+            message: 'Làm mới kho tài liệu thành công!',
             options: {
               key: new Date().getTime() + Math.random(),
               variant: 'success',
@@ -330,7 +330,7 @@ const DocumentStoreDetails = () => {
       } catch (error) {
         setBackdropLoading(false)
         enqueueSnackbar({
-          message: `Failed to refresh document store: ${
+          message: `Không thể làm mới kho tài liệu: ${
             typeof error.response.data === 'object' ? error.response.data.message : error.response.data
           }`,
           options: {
@@ -354,10 +354,10 @@ const DocumentStoreDetails = () => {
       id: documentStore.id
     }
     const dialogProp = {
-      title: 'Edit Document Store',
+      title: 'Chỉnh sửa kho dữ liệu',
       type: 'EDIT',
-      cancelButtonName: 'Cancel',
-      confirmButtonName: 'Update',
+      cancelButtonName: 'Đóng',
+      confirmButtonName: 'Cập nhật',
       data: data
     }
     setDialogProps(dialogProp)
@@ -432,7 +432,7 @@ const DocumentStoreDetails = () => {
                 startIcon={<IconPlus />}
                 onClick={listLoaders}
               >
-                Add Document Loader
+                Thêm Document Loader
               </StyledButton>
               <Button
                 id='document-store-header-action-button'
@@ -446,7 +446,7 @@ const DocumentStoreDetails = () => {
                 sx={{ minWidth: 150 }}
                 endIcon={<KeyboardArrowDownIcon />}
               >
-                More Actions
+                Thao tác khác
               </Button>
               <StyledMenu
                 id='document-store-header-menu'
@@ -463,7 +463,7 @@ const DocumentStoreDetails = () => {
                   disableRipple
                 >
                   <FileChunksIcon />
-                  View & Edit Chunks
+                  Xem & sửa Chunks
                 </MenuItem>
                 <MenuItem
                   disabled={documentStore?.totalChunks <= 0 || documentStore?.status === 'UPSERTING'}
@@ -471,7 +471,7 @@ const DocumentStoreDetails = () => {
                   disableRipple
                 >
                   <NoteAddIcon />
-                  Upsert All Chunks
+                  Cập nhật tất cả Chunks
                 </MenuItem>
                 <MenuItem
                   disabled={documentStore?.totalChunks <= 0 || documentStore?.status !== 'UPSERTED'}
@@ -479,7 +479,7 @@ const DocumentStoreDetails = () => {
                   disableRipple
                 >
                   <SearchIcon />
-                  Retrieval Query
+                  Truy vấn truy xuất
                 </MenuItem>
                 <MenuItem
                   disabled={documentStore?.totalChunks <= 0 || documentStore?.status !== 'UPSERTED'}
@@ -488,12 +488,12 @@ const DocumentStoreDetails = () => {
                   title='Re-process all loaders and upsert all chunks'
                 >
                   <RefreshIcon />
-                  Refresh
+                  Làm mới
                 </MenuItem>
                 <Divider sx={{ my: 0.5 }} />
                 <MenuItem onClick={() => onStoreDelete(documentStore.vectorStoreConfig, documentStore.recordManagerConfig)} disableRipple>
                   <FileDeleteIcon />
-                  Delete
+                  Xoá
                 </MenuItem>
               </StyledMenu>
             </ViewHeader>
@@ -540,14 +540,14 @@ const DocumentStoreDetails = () => {
                     alt='doc_store_details_emptySVG'
                   />
                 </Box>
-                <div>No Document Added Yet</div>
+                <div>Chưa có tài liệu nào được thêm</div>
                 <StyledButton
                   variant='contained'
                   sx={{ borderRadius: 2, height: '100%', mt: 2, color: 'white' }}
                   startIcon={<IconPlus />}
                   onClick={listLoaders}
                 >
-                  Add Document Loader
+                  Thêm Document Loader
                 </StyledButton>
               </Stack>
             ) : (

@@ -352,15 +352,15 @@ class VectaraChain_Chains implements INode {
       const summaryStatus = result.responseSet[0].summary[0].status
       if (summaryStatus.length > 0 && summaryStatus[0].code === 'BAD_REQUEST') {
         throw new Error(
-          `BAD REQUEST: Too much text for the summarizer to summarize. Please try reducing the number of search results to summarize, or the context of each result by adjusting the 'summary_num_sentences', and 'summary_num_results' parameters respectively.`
+          `Yêu cầu không hợp lệ: Quá nhiều văn bản để bộ tóm tắt xử lý. Vui lòng thử giảm số lượng kết quả tìm kiếm cần tóm tắt hoặc điều chỉnh ngữ cảnh của từng kết quả bằng cách thay đổi các tham số 'summary_num_sentences' và 'summary_num_results'.`
         )
       }
       if (
         summaryStatus.length > 0 &&
         summaryStatus[0].code === 'NOT_FOUND' &&
-        summaryStatus[0].statusDetail === 'Failed to retrieve summarizer.'
+        summaryStatus[0].statusDetail === 'Không thể truy xuất summarizer.'
       ) {
-        throw new Error(`BAD REQUEST: summarizer ${summarizerPromptName} is invalid for this account.`)
+        throw new Error(`Yêu cầu không hợp lệ: summarizer ${summarizerPromptName} không hợp lệ đối với tài khoản này`)
       }
 
       // Reorder citations in summary and create the list of returned source documents

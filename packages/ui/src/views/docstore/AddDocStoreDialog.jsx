@@ -74,7 +74,7 @@ const AddDocStoreDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
       const createResp = await documentStoreApi.createDocumentStore(obj)
       if (createResp.data) {
         enqueueSnackbar({
-          message: 'New Document Store created.',
+          message: 'Kho tài liệu mới đã được tạo.',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -90,7 +90,7 @@ const AddDocStoreDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
     } catch (err) {
       const errorData = typeof err === 'string' ? err : err.response?.data || `${err.response.data.message}`
       enqueueSnackbar({
-        message: `Failed to add new Document Store: ${errorData}`,
+        message: `Không thể thêm kho dữ liệu: ${errorData}`,
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',
@@ -116,7 +116,7 @@ const AddDocStoreDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
       const saveResp = await documentStoreApi.updateDocumentStore(docStoreId, saveObj)
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Document Store Updated!',
+          message: 'Đã cập nhật kho dữ liệu!',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -132,7 +132,7 @@ const AddDocStoreDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
     } catch (error) {
       const errorData = error.response?.data || `${error.response?.status}: ${error.response?.statusText}`
       enqueueSnackbar({
-        message: `Failed to update Document Store: ${errorData}`,
+        message: `Không thể cập nhật kho dữ liệu: ${errorData}`,
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',
@@ -167,7 +167,7 @@ const AddDocStoreDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
         <Box sx={{ p: 2 }}>
           <div style={{ display: 'flex', flexDirection: 'row' }}>
             <Typography>
-              Name<span style={{ color: 'red' }}>&nbsp;*</span>
+              Tên<span style={{ color: 'red' }}>&nbsp;*</span>
             </Typography>
 
             <div style={{ flexGrow: 1 }}></div>
@@ -184,7 +184,7 @@ const AddDocStoreDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
         </Box>
         <Box sx={{ p: 2 }}>
           <div style={{ display: 'flex', flexDirection: 'row' }}>
-            <Typography>Description</Typography>
+            <Typography>Mô tả</Typography>
 
             <div style={{ flexGrow: 1 }}></div>
           </div>

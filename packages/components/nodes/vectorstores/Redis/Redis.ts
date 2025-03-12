@@ -256,7 +256,7 @@ const checkIndexExists = async (redisClient: ReturnType<typeof createClient>, in
   } catch (err: any) {
     if (err?.message.includes('unknown command')) {
       throw new Error(
-        'Failed to run FT.INFO command. Please ensure that you are running a RediSearch-capable Redis instance: https://js.langchain.com/docs/modules/data_connection/vectorstores/integrations/redis#setup'
+        'Không thể chạy lệnh FT.INFO. Vui lòng đảm bảo rằng bạn đang chạy một phiên bản Redis có hỗ trợ RediSearch: https://js.langchain.com/docs/modules/data_connection/vectorstores/integrations/redis#setup'
       )
     }
     // index doesn't exist

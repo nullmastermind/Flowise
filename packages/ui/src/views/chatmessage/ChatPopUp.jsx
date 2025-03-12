@@ -95,7 +95,7 @@ export const ChatPopUp = ({ chatflowid, isAgentCanvas }) => {
         removeLocalStorageChatHistory(chatflowid)
         resetChatDialog()
         enqueueSnackbar({
-          message: 'Succesfully cleared all chat history',
+          message: 'Đã xoá hết lịch sử trò chuyện',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',

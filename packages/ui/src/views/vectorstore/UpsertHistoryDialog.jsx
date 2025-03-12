@@ -242,7 +242,7 @@ const UpsertHistoryDialog = ({ show, dialogProps, onCancel }) => {
     try {
       await vectorstoreApi.deleteUpsertHistory(selected)
       enqueueSnackbar({
-        message: 'Succesfully deleted upsert history',
+        message: 'Đã xóa lịch sử chèn hoặc cập nhật thành công.',
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'success',
@@ -257,7 +257,7 @@ const UpsertHistoryDialog = ({ show, dialogProps, onCancel }) => {
       setSelected([])
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to delete Upsert History: ${
+        message: `Không thể xoá Upsert History: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {

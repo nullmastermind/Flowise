@@ -2,6 +2,7 @@ import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { useSelector } from 'react-redux'
 import moment from 'moment'
+import 'moment/locale/vi'
 import { styled } from '@mui/material/styles'
 import {
   Box,
@@ -89,25 +90,25 @@ export const FlowListTable = ({ data, images, isLoading, filterFunction, updateF
             <TableRow>
               <StyledTableCell component='th' scope='row' style={{ width: '20%' }} key='0'>
                 <TableSortLabel active={orderBy === 'name'} direction={order} onClick={() => handleRequestSort('name')}>
-                  Name
+                  Tên
                 </TableSortLabel>
               </StyledTableCell>
               <StyledTableCell style={{ width: '15%' }} key='1'>
-                User
+                Người dùng
               </StyledTableCell>
               <StyledTableCell style={{ width: '25%' }} key='2'>
-                Group
+                Nhóm
               </StyledTableCell>
               <StyledTableCell style={{ width: '15%' }} key='3'>
                 Nodes
               </StyledTableCell>
               <StyledTableCell style={{ width: '15%' }} key='4'>
                 <TableSortLabel active={orderBy === 'updatedDate'} direction={order} onClick={() => handleRequestSort('updatedDate')}>
-                  Last Modified Date
+                  Ngày chỉnh sửa cuối
                 </TableSortLabel>
               </StyledTableCell>
               <StyledTableCell style={{ width: '10%' }} key='5'>
-                Actions
+                Hành động
               </StyledTableCell>
             </TableRow>
           </TableHead>
@@ -248,7 +249,7 @@ export const FlowListTable = ({ data, images, isLoading, filterFunction, updateF
                         </Box>
                       )}
                     </StyledTableCell>
-                    <StyledTableCell key='4'>{moment(row.updatedDate).format('MMMM Do, YYYY')}</StyledTableCell>
+                    <StyledTableCell key='4'>{moment(row.updatedDate).locale('vi').format('MMMM Do, YYYY')}</StyledTableCell>
                     <StyledTableCell key='5'>
                       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent='center' alignItems='center'>
                         <FlowListMenu isAgentCanvas={isAgentCanvas} chatflow={row} setError={setError} updateFlowsApi={updateFlowsApi} />

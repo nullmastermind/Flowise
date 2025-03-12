@@ -118,7 +118,7 @@ const removeUser = async (req: any, id: any) => {
 
     if (isAuthorizedToRemove) {
       await appServer.AppDataSource.getRepository(User).remove(foundUserToRemove)
-      return { message: 'User removed successfully' }
+      return { message: 'Xoá người dùng thành công' }
     } else {
       throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, 'Không có quyền xóa user này')
     }
@@ -205,7 +205,7 @@ const deleteGroupUser = async (id: any) => {
       throw new InternalFlowiseError(StatusCodes.NOT_FOUND, 'Group user not found')
     }
     await appServer.AppDataSource.getRepository(GroupUsers).remove(groupUser)
-    return { message: 'Group user removed successfully' }
+    return { message: 'Xoá nhóm thành công' }
   } catch (error) {
     throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `${getErrorMessage(error)}`)
   }

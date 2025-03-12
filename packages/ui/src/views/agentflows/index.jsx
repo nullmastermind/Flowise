@@ -173,7 +173,7 @@ const Agentflows = () => {
               startIcon={<IconPlus />}
               sx={{ borderRadius: 2, height: 40 }}
             >
-              Add New
+              Thêm mới
             </StyledButton>
           </ViewHeader>
 

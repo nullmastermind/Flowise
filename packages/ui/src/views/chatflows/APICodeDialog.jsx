@@ -641,7 +641,7 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
         })
       }
       options.push({
-        label: '- Add New Key -',
+        label: '- Thêm mới Key -',
         name: 'addnewkey'
       })
       setKeyOptions(options)

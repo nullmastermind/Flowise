@@ -90,7 +90,7 @@ class DocStore_VectorStores implements INode {
     data.embeddingConfig = embeddingConfig.config
     let embeddingObj = await _createEmbeddingsObject(options.componentNodes, data, options)
     if (!embeddingObj) {
-      return { error: 'Failed to create EmbeddingObj' }
+      return { error: 'Không thể tạo EmbeddingObj.' }
     }
 
     // Prepare Vector Store Instance
@@ -108,7 +108,7 @@ class DocStore_VectorStores implements INode {
     const vectorStoreObj = await _createVectorStoreObject(options.componentNodes, data)
     const retrieverOrVectorStore = await vectorStoreObj.init(vStoreNodeData, '', options)
     if (!retrieverOrVectorStore) {
-      return { error: 'Failed to create vectorStore' }
+      return { error: 'Không thể tạo vectorStore.' }
     }
     return retrieverOrVectorStore
   }

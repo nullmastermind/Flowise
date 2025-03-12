@@ -218,7 +218,7 @@ class S3_DocumentLoaders implements INode {
                 response.Body.on('end', () => resolve(Buffer.concat(chunks)))
                 response.Body.on('error', reject)
               } else {
-                reject(new Error('Response body is not a readable stream.'))
+                reject(new Error('Nội dung phản hồi không phải là một luồng có thể đọc được.'))
               }
             })
 
@@ -228,7 +228,7 @@ class S3_DocumentLoaders implements INode {
             // write the file to the directory
             fsDefault.writeFileSync(filePath, objectData)
           } catch (e: any) {
-            throw new Error(`Failed to download file ${key} from S3 bucket ${bucketName}: ${e.message}`)
+            throw new Error(`Không thể tải xuống tệp ${key} từ S3 bucket ${bucketName}: ${e.message}`)
           }
         })
       )
@@ -340,7 +340,7 @@ class S3_DocumentLoaders implements INode {
       }
     } catch (e: any) {
       fsDefault.rmSync(tempDir, { recursive: true })
-      throw new Error(`Failed to load data from bucket ${bucketName}: ${e.message}`)
+      throw new Error(`Không thể tải dữ liệu từ bucket ${bucketName}: ${e.message}`)
     }
   }
 }

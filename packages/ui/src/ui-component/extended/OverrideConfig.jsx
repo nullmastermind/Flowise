@@ -261,7 +261,7 @@ const OverrideConfig = ({ dialogProps }) => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Override Configuration Saved',
+          message: 'Đã lưu cấu hình Override',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -276,7 +276,7 @@ const OverrideConfig = ({ dialogProps }) => {
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save Override Configuration: ${
+        message: `Không thể lưu cấu hình Override: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {

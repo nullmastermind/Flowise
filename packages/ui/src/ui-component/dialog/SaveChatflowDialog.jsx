@@ -40,7 +40,7 @@ const SaveChatflowDialog = ({ show, dialogProps, onCancel, onConfirm, isLoadingR
           id='chatflow-name'
           type='text'
           fullWidth
-          placeholder='My New Chatflow'
+          placeholder='Tên mới của Chatflow'
           value={chatflowName}
           onChange={(e) => setChatflowName(e.target.value)}
           onKeyDown={(e) => {
