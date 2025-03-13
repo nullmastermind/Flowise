@@ -78,7 +78,7 @@ const RateLimit = () => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Rate Limit Configuration Saved',
+          message: 'Đã lưu cấu hình Rate Limit',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -93,7 +93,7 @@ const RateLimit = () => {
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save Rate Limit Configuration: ${
+        message: `Không thể lưu cấu hình Rate Limit: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {

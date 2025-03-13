@@ -100,7 +100,7 @@ const ShowStoredChunks = () => {
       )
       if (editResp.data) {
         enqueueSnackbar({
-          message: 'Document chunk successfully edited!',
+          message: 'Chỉnh sửa chunk thành công!',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -117,7 +117,9 @@ const ShowStoredChunks = () => {
     } catch (error) {
       setLoading(false)
       enqueueSnackbar({
-        message: `Failed to edit chunk: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
+        message: `Không thể chỉnh sửa chunk: ${
+          typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+        }`,
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',
@@ -147,7 +149,7 @@ const ShowStoredChunks = () => {
         const delResp = await documentsApi.deleteChunkFromStore(chunk.storeId, chunk.docId, chunk.id)
         if (delResp.data) {
           enqueueSnackbar({
-            message: 'Document chunk successfully deleted!',
+            message: 'Xoá chunk thành công!',
             options: {
               key: new Date().getTime() + Math.random(),
               variant: 'success',
@@ -164,7 +166,7 @@ const ShowStoredChunks = () => {
       } catch (error) {
         setLoading(false)
         enqueueSnackbar({
-          message: `Failed to delete chunk: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
+          message: `Không thể xoá chunk: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'error',

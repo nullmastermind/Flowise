@@ -138,12 +138,12 @@ export class UnstructuredLoader extends BaseDocumentLoader {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to partition file ${this.filePath} with error ${response.status} and message ${await response.text()}`)
+      throw new Error(`Không thể phân vùng tệp ${this.filePath}. Lỗi: ${response.status}, Thông báo: ${await response.text()}`)
     }
 
     const elements = await response.json()
     if (!Array.isArray(elements)) {
-      throw new Error(`Expected partitioning request to return an array, but got ${elements}`)
+      throw new Error(`Yêu cầu phân vùng dự kiến trả về một mảng, nhưng nhận được ${elements}.`)
     }
     return elements.filter((el) => typeof el.text === 'string') as Element[]
   }
@@ -171,6 +171,6 @@ export class UnstructuredLoader extends BaseDocumentLoader {
   }
 
   async load(): Promise<Document[]> {
-    return Promise.reject(new Error('load() is not supported for UnstructuredLoader. Use loadAndSplitBuffer() instead.'))
+    return Promise.reject(new Error('Hàm load() không được hỗ trợ cho UnstructuredLoader. Vui lòng sử dụng loadAndSplitBuffer() thay thế.'))
   }
 }

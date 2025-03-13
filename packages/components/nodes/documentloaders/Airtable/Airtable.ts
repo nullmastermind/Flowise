@@ -319,9 +319,9 @@ class AirtableLoader extends BaseDocumentLoader {
       return response.data
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(`Failed to fetch ${url} from Airtable: ${error.message}, status: ${error.response?.status}`)
+        throw new Error(`Không thể truy vấn ${url} từ Airtable: ${error.message}, status: ${error.response?.status}`)
       } else {
-        throw new Error(`Failed to fetch ${url} from Airtable: ${error}`)
+        throw new Error(`Không thể truy vấn ${url} từ Airtable: ${error}`)
       }
     }
   }

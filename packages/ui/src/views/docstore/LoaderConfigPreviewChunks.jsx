@@ -132,7 +132,7 @@ const LoaderConfigPreviewChunks = () => {
     }
     if (!canSubmit) {
       enqueueSnackbar({
-        message: 'Please fill in all mandatory fields.',
+        message: 'Vui lòng điền đủ thông tin bắt buộc',
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'warning',
@@ -164,7 +164,7 @@ const LoaderConfigPreviewChunks = () => {
       } catch (error) {
         setLoading(false)
         enqueueSnackbar({
-          message: `Failed to preview chunks: ${
+          message: `Không thể xem trước chunks: ${
             typeof error.response.data === 'object' ? error.response.data.message : error.response.data
           }`,
           options: {
@@ -190,7 +190,7 @@ const LoaderConfigPreviewChunks = () => {
         setLoading(false)
         if (saveResp.data) {
           enqueueSnackbar({
-            message: 'File submitted for processing. Redirecting to Document Store..',
+            message: 'Tệp đã được gửi để xử lý. Đang chuyển hướng đến Kho tài liệu...',
             options: {
               key: new Date().getTime() + Math.random(),
               variant: 'success',
@@ -208,7 +208,7 @@ const LoaderConfigPreviewChunks = () => {
       } catch (error) {
         setLoading(false)
         enqueueSnackbar({
-          message: `Failed to process chunking: ${
+          message: `Không thể xử lý chunking: ${
             typeof error.response.data === 'object' ? error.response.data.message : error.response.data
           }`,
           options: {

@@ -159,7 +159,7 @@ const SpeechToText = ({ dialogProps }) => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Speech To Text Configuration Saved',
+          message: 'Đã lưu cấu hình chuyển đổi giọng nói sang văn bản',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -174,7 +174,7 @@ const SpeechToText = ({ dialogProps }) => {
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save Speech To Text Configuration: ${
+        message: `Không thể lưu cấu hình chuyển đổi giọng nói sang văn bản: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {
@@ -345,7 +345,7 @@ const SpeechToText = ({ dialogProps }) => {
         variant='contained'
         onClick={onSave}
       >
-        Save
+        Lưu
       </StyledButton>
     </>
   )

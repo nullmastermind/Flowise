@@ -85,9 +85,9 @@ const PopupAddGroup = ({ open, onClose, setUserGroups }) => {
         fullWidth
         maxWidth='sm'
       >
-        <DialogTitle>Add New Group</DialogTitle>
+        <DialogTitle>Thêm mới nhóm</DialogTitle>
         <DialogContent>
-          <DialogContentText>Please enter the details of the new Group.</DialogContentText>
+          <DialogContentText>Hãy nhập thông tin chi tiết nhóm mới.</DialogContentText>
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField

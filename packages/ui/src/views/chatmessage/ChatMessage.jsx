@@ -603,7 +603,7 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
       inputRef.current?.focus()
     }, 100)
     enqueueSnackbar({
-      message: 'Message stopped',
+      message: 'Đã dừng cuộc trò chuyện',
       options: {
         key: new Date().getTime() + Math.random(),
         variant: 'success',

@@ -300,7 +300,7 @@ const FollowUpPrompts = ({ dialogProps }) => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Follow-up Prompts configuration saved',
+          message: 'Đã lưu cấu hình Follow-up Prompts',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -316,7 +316,7 @@ const FollowUpPrompts = ({ dialogProps }) => {
     } catch (error) {
       const errorData = error.response.data || `${error.response.status}: ${error.response.statusText}`
       enqueueSnackbar({
-        message: `Failed to save follow-up prompts configuration: ${errorData}`,
+        message: `Không thể lưu cấu hình follow-up prompts: ${errorData}`,
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',
@@ -507,7 +507,7 @@ const FollowUpPrompts = ({ dialogProps }) => {
         )}
       </Box>
       <StyledButton disabled={checkDisabled()} variant='contained' onClick={onSave}>
-        Save
+        Lưu
       </StyledButton>
     </>
   )

@@ -69,7 +69,7 @@ const ManageScrapedLinksDialog = ({ show, dialogProps, onCancel, onSave }) => {
       if (fetchLinksResp.data) {
         setSelectedLinks(fetchLinksResp.data.links)
         enqueueSnackbar({
-          message: 'Successfully fetched links',
+          message: 'Đã truy xuất liên kết thành công.',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',

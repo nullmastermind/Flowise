@@ -138,17 +138,17 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
 
   const columns = useMemo(
     () => [
-      { field: 'property', headerName: 'Property', editable: true, flex: 1 },
+      { field: 'property', headerName: 'Thuộc tính', editable: true, flex: 1 },
       {
         field: 'type',
-        headerName: 'Type',
+        headerName: 'Loại',
         type: 'singleSelect',
         valueOptions: ['string', 'number', 'boolean', 'date'],
         editable: true,
         width: 120
       },
-      { field: 'description', headerName: 'Description', editable: true, flex: 1 },
-      { field: 'required', headerName: 'Required', type: 'boolean', editable: true, width: 80 },
+      { field: 'description', headerName: 'Mô tả', editable: true, flex: 1 },
+      { field: 'required', headerName: 'Bắt buộc', type: 'boolean', editable: true, width: 80 },
       {
         field: 'actions',
         type: 'actions',
@@ -251,7 +251,7 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to export Tool: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
+        message: `Không thể xuất công cụ: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',
@@ -280,7 +280,7 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
       const createResp = await toolsApi.createNewTool(obj)
       if (createResp.data) {
         enqueueSnackbar({
-          message: 'New Tool added',
+          message: 'Đã thêm công cụ mới',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -295,7 +295,9 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to add new Tool: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
+        message: `Không thể thêm công cụ mới: ${
+          typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+        }`,
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',
@@ -322,7 +324,7 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Tool saved',
+          message: 'Đã lưu công cụ',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -337,7 +339,7 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save Tool: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
+        message: `Không thể lưu công cụ ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',
@@ -355,10 +357,10 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
 
   const deleteTool = async () => {
     const confirmPayload = {
-      title: `Delete Tool`,
-      description: `Delete tool ${toolName}?`,
-      confirmButtonName: 'Delete',
-      cancelButtonName: 'Cancel'
+      title: `Xoá công cụ`,
+      description: `Xoá công cụ ${toolName}?`,
+      confirmButtonName: 'Xoá',
+      cancelButtonName: 'Đóng'
     }
     const isConfirmed = await confirm(confirmPayload)
 
@@ -367,7 +369,7 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
         const delResp = await toolsApi.deleteTool(toolId)
         if (delResp.data) {
           enqueueSnackbar({
-            message: 'Tool deleted',
+            message: 'Đã xoá công cụ',
             options: {
               key: new Date().getTime() + Math.random(),
               variant: 'success',
@@ -382,7 +384,7 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
         }
       } catch (error) {
         enqueueSnackbar({
-          message: `Failed to delete Tool: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
+          message: `Không thể xoá công cụ: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'error',
@@ -421,10 +423,10 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
                   startIcon={<IconTemplate />}
                   color='secondary'
                 >
-                  Save As Template
+                  Lưu dưới dạng mẫu
                 </Button>
                 <Button variant='outlined' onClick={() => exportTool()} startIcon={<IconFileDownload />}>
-                  Export
+                  Xuất
                 </Button>
               </>
             )}
@@ -436,10 +438,14 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
           <Box>
             <Stack sx={{ position: 'relative', alignItems: 'center' }} direction='row'>
               <Typography variant='overline'>
-                Tool Name
+                Tên
                 <span style={{ color: 'red' }}>&nbsp;*</span>
               </Typography>
-              <TooltipWithParser title={'Tool name must be small capital letter with underscore. Ex: my_tool'} />
+              <TooltipWithParser
+                title={
+                  'Tool name must be small capital letter with underscore. Ex: my_toolTên công cụ phải được viết bằng chữ thường và sử dụng dấu gạch dưới. Ví dụ: my_tool.'
+                }
+              />
             </Stack>
             <OutlinedInput
               id='toolName'
@@ -455,17 +461,17 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
           <Box>
             <Stack sx={{ position: 'relative', alignItems: 'center' }} direction='row'>
               <Typography variant='overline'>
-                Tool description
+                Mô tả
                 <span style={{ color: 'red' }}>&nbsp;*</span>
               </Typography>
-              <TooltipWithParser title={'Description of what the tool does. This is for ChatGPT to determine when to use this tool.'} />
+              <TooltipWithParser title={'Mô tả chức năng của công cụ để ChatGPT xác định thời điểm sử dụng.'} />
             </Stack>
             <OutlinedInput
               id='toolDesc'
               type='string'
               fullWidth
               disabled={dialogProps.type === 'TEMPLATE'}
-              placeholder='Description of what the tool does. This is for ChatGPT to determine when to use this tool.'
+              placeholder='Mô tả chức năng của công cụ để ChatGPT xác định thời điểm sử dụng.'
               multiline={true}
               rows={3}
               value={toolDesc}
@@ -475,7 +481,7 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
           </Box>
           <Box>
             <Stack sx={{ position: 'relative' }} direction='row'>
-              <Typography variant='overline'>Tool Icon Source</Typography>
+              <Typography variant='overline'>Nguồn icon</Typography>
             </Stack>
             <OutlinedInput
               id='toolIcon'
@@ -492,11 +498,11 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
             <Stack sx={{ position: 'relative', justifyContent: 'space-between' }} direction='row'>
               <Stack sx={{ position: 'relative', alignItems: 'center' }} direction='row'>
                 <Typography variant='overline'>Input Schema</Typography>
-                <TooltipWithParser title={'What is the input format in JSON?'} />
+                <TooltipWithParser title={'Định dạng đầu vào trong JSON là gì?'} />
               </Stack>
               {dialogProps.type !== 'TEMPLATE' && (
                 <Button variant='outlined' onClick={addNewRow} startIcon={<IconPlus />}>
-                  Add Item
+                  Thêm
                 </Button>
               )}
             </Stack>
@@ -505,8 +511,8 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Stack sx={{ position: 'relative', alignItems: 'center' }} direction='row'>
-                <Typography variant='overline'>Javascript Function</Typography>
-                <TooltipWithParser title='Function to execute when tool is being used. You can use properties specified in Input Schema as variables. For example, if the property is <code>userid</code>, you can use as <code>$userid</code>. Return value must be a string. You can also override the code from API by following this <a target="_blank" href="https://docs.flowiseai.com/tools/custom-tool#override-function-from-api">guide</a>' />
+                <Typography variant='overline'>Hàm Javascript</Typography>
+                <TooltipWithParser title='Hàm được thực thi khi công cụ được sử dụng. Có thể sử dụng các thuộc tính được chỉ định trong Input Schema làm biến. Ví dụ, nếu thuộc tính là userid, có thể sử dụng dưới dạng $userid. Giá trị trả về phải là một chuỗi. Cũng có thể ghi đè mã từ API theo hướng dẫn này: <a target="_blank" href="https://docs.flowiseai.com/tools/custom-tool#override-function-from-api">hướng dẫn</a>.' />
               </Stack>
               <Stack direction='row'>
                 <Button
@@ -515,11 +521,11 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
                   variant='text'
                   onClick={() => setShowHowToDialog(true)}
                 >
-                  How to use Function
+                  Sử dụng hàm như thế nào
                 </Button>
                 {dialogProps.type !== 'TEMPLATE' && (
                   <Button style={{ marginBottom: 10 }} variant='outlined' onClick={() => setToolFunc(exampleAPIFunc)}>
-                    See Example
+                    Xem ví dụ
                   </Button>
                 )}
               </Stack>
@@ -537,12 +543,12 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
       <DialogActions sx={{ p: 3 }}>
         {dialogProps.type === 'EDIT' && (
           <StyledButton color='error' variant='contained' onClick={() => deleteTool()}>
-            Delete
+            Xoá
           </StyledButton>
         )}
         {dialogProps.type === 'TEMPLATE' && (
           <StyledButton color='secondary' variant='contained' onClick={useToolTemplate}>
-            Use Template
+            Sử dụng mẫu
           </StyledButton>
         )}
         {dialogProps.type !== 'TEMPLATE' && (

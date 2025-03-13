@@ -237,7 +237,7 @@ class ApiLoader extends BaseDocumentLoader {
       })
       return [doc]
     } catch (error) {
-      throw new Error(`Failed to fetch ${url}: ${error}`)
+      throw new Error(`Không thể truy vấn từ ${url}: ${error}`)
     }
   }
 
@@ -257,7 +257,7 @@ class ApiLoader extends BaseDocumentLoader {
       })
       return [doc]
     } catch (error) {
-      throw new Error(`Failed to post ${url}: ${error}`)
+      throw new Error(`Không thể gửi yêu cầu đến ${url}: ${error}`)
     }
   }
 }

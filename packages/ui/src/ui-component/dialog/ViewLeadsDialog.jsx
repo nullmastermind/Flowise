@@ -134,7 +134,7 @@ const ViewLeadsDialog = ({ show, dialogProps, onCancel }) => {
               }
             }}
             variant='outlined'
-            placeholder='Search Name or Email or Phone'
+            placeholder='TÌm kiếm theo tên hoặc email hoặc số điện thoại'
             onChange={onSearchChange}
             startAdornment={
               <Box

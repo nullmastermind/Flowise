@@ -151,7 +151,7 @@ const AnalyseFlow = ({ dialogProps }) => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Analytic Configuration Saved',
+          message: 'Đã lưu cấu hình phân tích.',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -166,7 +166,7 @@ const AnalyseFlow = ({ dialogProps }) => {
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save Analytic Configuration: ${
+        message: `Không thể lưu cấu hình phân tích: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {

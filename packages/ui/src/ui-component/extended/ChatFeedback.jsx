@@ -45,7 +45,7 @@ const ChatFeedback = ({ dialogProps }) => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Chat Feedback Settings Saved',
+          message: 'Đã lưu cài đặt phản hồi trò chuyện.',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -60,7 +60,7 @@ const ChatFeedback = ({ dialogProps }) => {
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save Chat Feedback Settings: ${
+        message: `Không thể lưu cài đặt phản hồi trò chuyện.: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {
@@ -92,10 +92,10 @@ const ChatFeedback = ({ dialogProps }) => {
   return (
     <>
       <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <SwitchInput label='Enable chat feedback' onChange={handleChange} value={chatFeedbackStatus} />
+        <SwitchInput label='Cho phép phản hồi đoạn chat' onChange={handleChange} value={chatFeedbackStatus} />
       </Box>
       <StyledButton style={{ marginBottom: 10, marginTop: 10 }} variant='contained' onClick={onSave}>
-        Save
+        Lưu
       </StyledButton>
     </>
   )

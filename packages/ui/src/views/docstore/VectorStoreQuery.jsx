@@ -142,7 +142,7 @@ const VectorStoreQuery = () => {
       setLoading(false)
       if (updateResp.data) {
         enqueueSnackbar({
-          message: 'Vector Store Config Successfully Updated',
+          message: 'Đã cập nhật cấu hình kho vector thành công.',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -158,7 +158,7 @@ const VectorStoreQuery = () => {
       setLoading(false)
       const errorData = error.response?.data || `${error.response?.status}: ${error.response?.statusText}`
       enqueueSnackbar({
-        message: `Failed to update vector store config: ${errorData}`,
+        message: `Không thể cập nhật cấu hình kho vector: ${errorData}`,
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',
@@ -246,7 +246,7 @@ const VectorStoreQuery = () => {
           <ViewHeader
             isBackButton={true}
             search={false}
-            title={documentStore?.name || 'Document Store'}
+            title={documentStore?.name || 'Kho tài liệu'}
             description='Retrieval Playground - Test your vector store retrieval settings'
             onBack={() => navigate(-1)}
           >

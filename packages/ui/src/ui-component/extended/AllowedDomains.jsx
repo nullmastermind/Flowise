@@ -60,7 +60,7 @@ const AllowedDomains = ({ dialogProps }) => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Allowed Origins Saved',
+          message: 'Đã lưu nguồn được phép.',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -75,7 +75,7 @@ const AllowedDomains = ({ dialogProps }) => {
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save Allowed Origins: ${
+        message: `Không thể lưu nguồn được phép: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {
@@ -120,15 +120,15 @@ const AllowedDomains = ({ dialogProps }) => {
   return (
     <Stack direction='column' spacing={2} sx={{ alignItems: 'start' }}>
       <Typography variant='h3'>
-        Allowed Domains
+        Miền được cho phép
         <TooltipWithParser
           style={{ mb: 1, mt: 2, marginLeft: 10 }}
-          title={'Your chatbot will only work when used from the following domains.'}
+          title={'Chatbot của bạn sẽ chỉ hoạt động khi được sử dụng từ các miền sau.'}
         />
       </Typography>
       <Stack direction='column' spacing={2} sx={{ width: '100%' }}>
         <Stack direction='column' spacing={2}>
-          <Typography>Domains</Typography>
+          <Typography>Danh sách tên miền</Typography>
           {inputFields.map((origin, index) => {
             return (
               <div key={index} style={{ display: 'flex', width: '100%' }}>
@@ -173,10 +173,10 @@ const AllowedDomains = ({ dialogProps }) => {
         </Stack>
         <Stack direction='column' spacing={1}>
           <Typography>
-            Error Message
+            Thông báo lỗi
             <TooltipWithParser
               style={{ mb: 1, mt: 2, marginLeft: 10 }}
-              title={'Custom error message that will be shown when for unauthorized domain'}
+              title={'Thông báo lỗi tùy chỉnh sẽ hiển thị khi truy cập từ miền không được phép.'}
             />
           </Typography>
           <OutlinedInput
@@ -184,7 +184,7 @@ const AllowedDomains = ({ dialogProps }) => {
             type='text'
             size='small'
             fullWidth
-            placeholder='Unauthorized domain!'
+            placeholder='Tên miền không được phép'
             value={errorMessage}
             onChange={(e) => {
               setErrorMessage(e.target.value)
@@ -193,7 +193,7 @@ const AllowedDomains = ({ dialogProps }) => {
         </Stack>
       </Stack>
       <StyledButton variant='contained' onClick={onSave}>
-        Save
+        Lưu
       </StyledButton>
     </Stack>
   )

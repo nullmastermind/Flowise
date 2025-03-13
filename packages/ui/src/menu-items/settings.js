@@ -33,63 +33,63 @@ const settings = {
   children: [
     {
       id: 'viewMessages',
-      title: 'View Messages',
+      title: 'Xem Messages',
       type: 'item',
       url: '',
       icon: icons.IconMessage
     },
     {
       id: 'viewLeads',
-      title: 'View Leads',
+      title: 'Xem Leads',
       type: 'item',
       url: '',
       icon: icons.IconUsers
     },
     {
       id: 'viewUpsertHistory',
-      title: 'Upsert History',
+      title: 'Lịch sử cập nhật',
       type: 'item',
       url: '',
       icon: icons.IconDatabaseExport
     },
     {
       id: 'chatflowConfiguration',
-      title: 'Configuration',
+      title: 'Cấu hình',
       type: 'item',
       url: '',
       icon: icons.IconAdjustmentsHorizontal
     },
     {
       id: 'saveAsTemplate',
-      title: 'Save As Template',
+      title: 'Lưu thành mẫu',
       type: 'item',
       url: '',
       icon: icons.IconTemplate
     },
     {
       id: 'duplicateChatflow',
-      title: 'Duplicate Chatflow',
+      title: 'Nhân bản Chatflow',
       type: 'item',
       url: '',
       icon: icons.IconCopy
     },
     {
       id: 'loadChatflow',
-      title: 'Load Chatflow',
+      title: 'Nạp Chatflow',
       type: 'item',
       url: '',
       icon: icons.IconFileUpload
     },
     {
       id: 'exportChatflow',
-      title: 'Export Chatflow',
+      title: 'Xuất Chatflow',
       type: 'item',
       url: '',
       icon: icons.IconFileExport
     },
     {
       id: 'deleteChatflow',
-      title: 'Delete Chatflow',
+      title: 'Xoá Chatflow',
       type: 'item',
       url: '',
       icon: icons.IconTrash

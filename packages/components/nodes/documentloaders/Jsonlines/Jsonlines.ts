@@ -286,7 +286,7 @@ class TextLoader extends BaseDocumentLoader {
       return { readFile }
     } catch (e) {
       console.error(e)
-      throw new Error(`Failed to load fs/promises. Make sure you are running in Node.js environment.`)
+      throw new Error(`Không thể tải fs/promises. Hãy đảm bảo bạn đang chạy trong môi trường Node.js.`)
     }
   }
 }

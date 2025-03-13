@@ -154,7 +154,7 @@ const AssistantVectorStoreDialog = ({ show, dialogProps, onCancel, onConfirm, on
     } catch (error) {
       if (setError) setError(error)
       enqueueSnackbar({
-        message: `Failed to delete Vector Store: ${
+        message: `Không thể xoá Vector Store: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {

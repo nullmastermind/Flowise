@@ -51,9 +51,9 @@ export const ToolsTable = ({ data, isLoading, onSelect }) => {
           >
             <TableRow>
               <StyledTableCell component='th' scope='row' key='0'>
-                Name
+                Tên
               </StyledTableCell>
-              <StyledTableCell key='1'>Description</StyledTableCell>
+              <StyledTableCell key='1'>Mô tả</StyledTableCell>
               <StyledTableCell component='th' scope='row' key='3'>
                 &nbsp;
               </StyledTableCell>

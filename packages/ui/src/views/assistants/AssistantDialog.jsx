@@ -609,9 +609,7 @@ const AssistantDialog = ({ show, dialogProps, onCancel, onConfirm, setError }) =
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to delete Assistant: ${
-          typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-        }`,
+        message: `Không thể xoá Assistant: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',

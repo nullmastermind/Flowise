@@ -1206,12 +1206,12 @@ const queryVectorStore = async (data: ICommonObject) => {
     const vectorStoreObj = await _createVectorStoreObject(appServer, data, vStoreNodeData)
     const retriever = await vectorStoreObj.init(vStoreNodeData, '', options)
     if (!retriever) {
-      throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Failed to create retriever`)
+      throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Không thể tạo trình truy xuất (retriever).`)
     }
     const startMillis = Date.now()
     const results = await retriever.invoke(data.query, undefined)
     if (!results) {
-      throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Failed to retrieve results`)
+      throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Không thể truy xuất kết quả.`)
     }
     const endMillis = Date.now()
     const timeTaken = endMillis - startMillis
@@ -1281,7 +1281,7 @@ const _createEmbeddingsObject = async (
   const embeddingNodeInstance = new embeddingNodeModule.nodeClass()
   const embeddingObj = await embeddingNodeInstance.init(embeddingNodeData, '', options)
   if (!embeddingObj) {
-    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Failed to create EmbeddingObj`)
+    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Không thể tạo EmbeddingObj.`)
   }
   return embeddingObj
 }
@@ -1315,7 +1315,7 @@ const _createRecordManagerObject = async (
   const rmNodeInstance = new rmNodeModule.nodeClass()
   const recordManagerObj = await rmNodeInstance.init(rmNodeData, '', options)
   if (!recordManagerObj) {
-    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Failed to create RecordManager obj`)
+    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Không thể tạo RecordManager obj`)
   }
   return recordManagerObj
 }
@@ -1402,12 +1402,12 @@ const upsertDocStoreMiddleware = async (
   if (docId) {
     const entity = await appServer.AppDataSource.getRepository(DocumentStore).findOneBy({ id: storeId })
     if (!entity) {
-      throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Document store ${storeId} not found`)
+      throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Không tìm thấy kho tài liệu ${storeId}.`)
     }
     const loaders = JSON.parse(entity.loaders)
     const loader = loaders.find((ldr: IDocumentStoreLoader) => ldr.id === docId)
     if (!loader) {
-      throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Document loader ${docId} not found`)
+      throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Không tìm thấy bộ nạp tài liệu ${docId}`)
     }
 
     // Loader
@@ -1528,15 +1528,15 @@ const upsertDocStoreMiddleware = async (
 
   // Step 4: Verification for must have components
   if (!loaderName || !loaderId || !loaderConfig) {
-    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Loader not configured`)
+    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Loader không được cấu hình`)
   }
 
   if (!vectorStoreName || !vectorStoreConfig) {
-    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Vector store not configured`)
+    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Vector store không được cấu hình`)
   }
 
   if (!embeddingName || !embeddingConfig) {
-    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Embedding not configured`)
+    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Embedding không được cấu hình`)
   }
 
   // Step 5: Process & Upsert

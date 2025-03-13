@@ -105,7 +105,7 @@ const Credentials = () => {
 
   const listCredential = () => {
     const dialogProp = {
-      title: 'Add New Credential',
+      title: 'Thêm mới Credential',
       componentsCredentials
     }
     setCredentialListDialogProps(dialogProp)
@@ -136,10 +136,10 @@ const Credentials = () => {
 
   const deleteCredential = async (credential) => {
     const confirmPayload = {
-      title: `Delete`,
-      description: `Delete credential ${credential.name}?`,
-      confirmButtonName: 'Delete',
-      cancelButtonName: 'Cancel'
+      title: `Xoá thông tin xác thực`,
+      description: `Xoá ${credential.name}?`,
+      confirmButtonName: 'Xoá',
+      cancelButtonName: 'Đóng'
     }
     const isConfirmed = await confirm(confirmPayload)
 
@@ -148,7 +148,7 @@ const Credentials = () => {
         const deleteResp = await credentialsApi.deleteCredential(credential.id)
         if (deleteResp.data) {
           enqueueSnackbar({
-            message: 'Credential deleted',
+            message: 'Đã xoá thông tin xác thực',
             options: {
               key: new Date().getTime() + Math.random(),
               variant: 'success',
@@ -163,7 +163,7 @@ const Credentials = () => {
         }
       } catch (error) {
         enqueueSnackbar({
-          message: `Failed to delete Credential: ${
+          message: `Không thể xoá thông tin xác thực: ${
             typeof error.response.data === 'object' ? error.response.data.message : error.response.data
           }`,
           options: {
@@ -228,7 +228,12 @@ const Credentials = () => {
           <ErrorBoundary error={error} />
         ) : (
           <Stack flexDirection='column' sx={{ gap: 3 }}>
-            <ViewHeader onSearchChange={onSearchChange} search={true} searchPlaceholder='Search Credentials' title='Credentials'>
+            <ViewHeader
+              onSearchChange={onSearchChange}
+              search={true}
+              searchPlaceholder='Tìm kiếm thông tin xác thực'
+              title='Thông tin xác thực'
+            >
               <StyledButton
                 disabled={!isLogin}
                 variant='contained'
@@ -236,7 +241,7 @@ const Credentials = () => {
                 onClick={listCredential}
                 startIcon={<IconPlus />}
               >
-                Add Credential
+                Thêm
               </StyledButton>
             </ViewHeader>
 
@@ -250,9 +255,9 @@ const Credentials = () => {
                     }}
                   >
                     <TableRow>
-                      <StyledTableCell>Name</StyledTableCell>
-                      <StyledTableCell>Last Updated</StyledTableCell>
-                      <StyledTableCell>Created</StyledTableCell>
+                      <StyledTableCell>Tên</StyledTableCell>
+                      <StyledTableCell>Lần cập nhật cuối</StyledTableCell>
+                      <StyledTableCell>Thời gian tạo</StyledTableCell>
                       <StyledTableCell> </StyledTableCell>
                       <StyledTableCell> </StyledTableCell>
                     </TableRow>

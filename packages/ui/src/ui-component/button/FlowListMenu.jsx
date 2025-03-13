@@ -133,7 +133,7 @@ export default function FlowListMenu({ chatflow, isAgentCanvas, setError, update
   const handleFlowStarterPrompts = () => {
     setAnchorEl(null)
     setConversationStartersDialogProps({
-      title: 'Starter Prompts - ' + chatflow.name,
+      title: 'Gợi ý bắt đầu - ' + chatflow.name,
       chatflow: chatflow
     })
     setConversationStartersDialogOpen(true)
@@ -150,7 +150,7 @@ export default function FlowListMenu({ chatflow, isAgentCanvas, setError, update
   const handleFlowChatFeedback = () => {
     setAnchorEl(null)
     setChatFeedbackDialogProps({
-      title: 'Chat Feedback - ' + chatflow.name,
+      title: 'Phản hồi hội thoại - ' + chatflow.name,
       chatflow: chatflow
     })
     setChatFeedbackDialogOpen(true)
@@ -159,7 +159,7 @@ export default function FlowListMenu({ chatflow, isAgentCanvas, setError, update
   const handleAllowedDomains = () => {
     setAnchorEl(null)
     setAllowedDomainsDialogProps({
-      title: 'Allowed Domains - ' + chatflow.name,
+      title: 'Miền được cho phép - ' + chatflow.name,
       chatflow: chatflow
     })
     setAllowedDomainsDialogOpen(true)
@@ -168,7 +168,7 @@ export default function FlowListMenu({ chatflow, isAgentCanvas, setError, update
   const handleSpeechToText = () => {
     setAnchorEl(null)
     setSpeechToTextDialogProps({
-      title: 'Speech To Text - ' + chatflow.name,
+      title: 'Chuyển giọng nói thành văn bản - ' + chatflow.name,
       chatflow: chatflow
     })
     setSpeechToTextDialogOpen(true)
@@ -318,7 +318,7 @@ export default function FlowListMenu({ chatflow, isAgentCanvas, setError, update
         onClick={handleClick}
         endIcon={<KeyboardArrowDownIcon />}
       >
-        Options
+        Lựa chọn
       </Button>
       <StyledMenu
         id='demo-customized-menu'
@@ -332,43 +332,43 @@ export default function FlowListMenu({ chatflow, isAgentCanvas, setError, update
         {isOwner && (
           <MenuItem onClick={handleFlowRename} disableRipple>
             <EditIcon />
-            Rename
+            Đổi tên
           </MenuItem>
         )}
         <MenuItem onClick={handleDuplicate} disableRipple>
           <FileCopyIcon />
-          Duplicate
+          Nhân bản
         </MenuItem>
         <MenuItem onClick={handleExport} disableRipple>
           <FileDownloadIcon />
-          Export
+          Xuất
         </MenuItem>
         <MenuItem onClick={handleExportTemplate} disableRipple>
           <ExportTemplateOutlinedIcon />
-          Save As Template
+          Lưu thành mẫu
         </MenuItem>
         {isOwner && (
           <>
             <Divider sx={{ my: 0.5 }} />
             <MenuItem onClick={handleFlowStarterPrompts} disableRipple>
               <PictureInPictureAltIcon />
-              Starter Prompts
+              Gợi ý bắt đầu
             </MenuItem>
             <MenuItem onClick={handleFlowChatFeedback} disableRipple>
               <ThumbsUpDownOutlinedIcon />
-              Chat Feedback
+              Phản hồi hội thoại
             </MenuItem>
             <MenuItem onClick={handleAllowedDomains} disableRipple>
               <VpnLockOutlinedIcon />
-              Allowed Domains
+              Miền được cho phép
             </MenuItem>
             <MenuItem onClick={handleSpeechToText} disableRipple>
               <MicNoneOutlinedIcon />
-              Speech To Text
+              Chuyển giọng nói thành văn bản
             </MenuItem>
             <MenuItem onClick={handleFlowCategory} disableRipple>
               <FileCategoryIcon />
-              Update Category
+              Cập nhật danh mục
             </MenuItem>
             <Divider sx={{ my: 0.5 }} />
           </>
@@ -376,17 +376,17 @@ export default function FlowListMenu({ chatflow, isAgentCanvas, setError, update
         {isOwner && (
           <MenuItem onClick={handleOpenDialogDelete} disableRipple>
             <FileDeleteIcon />
-            Delete
+            Xoá
           </MenuItem>
         )}
       </StyledMenu>
       <DeleteFlow
         show={deleteDialogOpen}
         dialogProps={{
-          title: `Delete`,
-          description: `Delete ${title} ${chatflow.name}?`,
-          confirmButtonName: 'Delete',
-          cancelButtonName: 'Cancel'
+          title: `Xoá`,
+          description: `Xoá ${title} ${chatflow.name}?`,
+          confirmButtonName: 'Xoá',
+          cancelButtonName: 'Đóng'
         }}
         onCancel={() => setDeleteDialogOpen(false)}
         onConfirm={handleDelete}
@@ -395,9 +395,9 @@ export default function FlowListMenu({ chatflow, isAgentCanvas, setError, update
       <SaveChatflowDialog
         show={flowDialogOpen}
         dialogProps={{
-          title: `Rename ${title}`,
-          confirmButtonName: 'Rename',
-          cancelButtonName: 'Cancel'
+          title: `Đổi tên ${title}`,
+          confirmButtonName: 'Đổi tên',
+          cancelButtonName: 'Đóng'
         }}
         onCancel={() => setFlowDialogOpen(false)}
         onConfirm={saveFlowRename}
