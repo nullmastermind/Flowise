@@ -355,6 +355,21 @@ const CanvasHeader = ({ chatflow, isAgentCanvas, handleSaveFlow, handleDeleteFlo
   }, [user, chatflow])
 
   useEffect(() => {
+    if (!chatflow?.id) return
+
+    const handleSave = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault()
+        if (chatflow?.id) handleSaveFlow(flowName)
+        else setFlowDialogOpen(true)
+      }
+    }
+
+    document.addEventListener('keydown', handleSave)
+    return () => document.removeEventListener('keydown', handleSave)
+  }, [chatflow, flowName, handleSaveFlow])
+
+  useEffect(() => {
     if (chatflow?.id) {
       setChatflowIsPublic(chatflow?.isPublic)
       setFlowName(chatflow?.name)
