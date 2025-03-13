@@ -40,15 +40,7 @@ export const VectorStorePopUp = ({ chatflowid }) => {
 
   return (
     <>
-      <StyledFab
-        sx={{ position: 'absolute', right: 80, top: 20 }}
-        ref={anchorRef}
-        size='small'
-        color='teal'
-        aria-label='upsert'
-        title='Upsert Vector Database'
-        onClick={handleToggle}
-      >
+      <StyledFab ref={anchorRef} size='small' color='teal' aria-label='upsert' title='Upsert Vector Database' onClick={handleToggle}>
         {open ? <IconX /> : <IconDatabaseImport />}
       </StyledFab>
       <VectorStoreDialog

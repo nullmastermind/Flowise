@@ -24,6 +24,7 @@
     "@uiw/codemirror-theme-sublime": "^4.21.21",
     "@uiw/codemirror-theme-vscode": "^4.21.21",
     "@uiw/react-codemirror": "^4.21.21",
+    "ahooks": "^3.8.4",
     "axios": "1.6.2",
     "cmcts-c-agent-embedding": "1.0.14",
     "cmcts-c-agent-embedding-react": "1.0.14",
