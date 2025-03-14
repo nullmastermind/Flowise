@@ -110,7 +110,7 @@ const PopupAddMember = ({ open, onClose, userGroups, selectedGroup, setUserGroup
         fullWidth
         maxWidth='sm'
       >
-        <DialogTitle>Add New Member</DialogTitle>
+        <DialogTitle>Thêm mới Member</DialogTitle>
         <DialogContent>
           <DialogContentText>Please enter the details of the new member.</DialogContentText>
           <Grid container spacing={2}>

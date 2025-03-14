@@ -55,7 +55,7 @@ const Assistants = () => {
 
   const addNew = (selectedOpenAIAssistantId, credential) => {
     const dialogProp = {
-      title: 'Add New Assistant',
+      title: 'Thêm mới Assistant',
       type: 'ADD',
       cancelButtonName: 'Cancel',
       confirmButtonName: 'Add',

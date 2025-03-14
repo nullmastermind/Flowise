@@ -58,7 +58,7 @@ const TagDialog = ({ isOpen, dialogProps, onClose, onSubmit }) => {
       aria-describedby='category-dialog-description'
     >
       <DialogTitle sx={{ fontSize: '1rem' }} id='alert-dialog-title'>
-        Set Chatflow Category Tags
+        Đặt các tag danh mục cho Chatflow
       </DialogTitle>
       <DialogContent>
         <Box>
@@ -81,19 +81,19 @@ const TagDialog = ({ isOpen, dialogProps, onClose, onSubmit }) => {
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleInputKeyDown}
-              label='Add a tag'
+              label='Thêm 1 tag'
               variant='outlined'
             />
             <Typography variant='body2' sx={{ fontStyle: 'italic', mt: 1 }} color='text.secondary'>
-              Enter a tag and press enter to add it to the list. You can add as many tags as you want.
+              Nhập một tag và nhấn Enter để thêm vào danh sách. Bạn có thể thêm bao nhiêu tag tùy ý.
             </Typography>
           </form>
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>Đóng</Button>
         <Button variant='contained' onClick={handleSubmit}>
-          Submit
+          Xác nhận
         </Button>
       </DialogActions>
     </Dialog>

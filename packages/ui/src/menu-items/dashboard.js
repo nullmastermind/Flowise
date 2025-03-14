@@ -60,7 +60,7 @@ const dashboard = {
       children: [
         {
           id: 'single-file',
-          title: 'Single file',
+          title: 'File đơn',
           type: 'item',
           url: '/document-stores',
           icon: icons.IconFile,
@@ -68,7 +68,7 @@ const dashboard = {
         },
         {
           id: 'directory',
-          title: 'Directory',
+          title: 'Thư mục',
           type: 'item',
           url: '/document-stores-new',
           icon: icons.IconFolderFilled,

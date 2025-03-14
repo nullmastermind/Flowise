@@ -308,7 +308,7 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
     try {
       const res = await vectorstoreApi.upsertVectorStore(dialogProps.chatflowid, { stopNodeId: vectorStoreNode.data.id })
       enqueueSnackbar({
-        message: 'Succesfully upserted vector store. You can start chatting now!',
+        message: 'Đã chèn hoặc cập nhật kho vector thành công. Bây giờ ta có thể bắt đầu trò chuyện!',
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'success',

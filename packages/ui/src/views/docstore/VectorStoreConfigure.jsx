@@ -200,7 +200,7 @@ const VectorStoreConfigure = () => {
 
     if (!canSubmit) {
       enqueueSnackbar({
-        message: 'Please fill in all mandatory fields.',
+        message: 'Vui lòng điền vào tất cả các trường bắt buộc..',
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'warning',
@@ -330,7 +330,7 @@ const VectorStoreConfigure = () => {
     if (saveVectorStoreConfigApi.data) {
       setLoading(false)
       enqueueSnackbar({
-        message: 'Configuration saved successfully',
+        message: 'Cấu hình thành công',
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'success',

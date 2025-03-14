@@ -890,7 +890,9 @@ function parseAIMessageToToolAction(message: AIMessage): ToolsAgentAction[] | Ag
         toolCalls.push({ name: functionName, args, id: toolCall.id })
       } catch (e: any) {
         throw new OutputParserException(
-          `Failed to parse tool arguments from chat model response. Text: "${JSON.stringify(toolCalls)}". ${e}`
+          `Không thể phân tích cú pháp đối số công cụ từ phản hồi của mô hình trò chuyện. Văn bản: "${JSON.stringify(
+            toolCalls
+          )}". Lỗi: ${e}.`
         )
       }
     }
@@ -916,18 +918,18 @@ export class ToolCallingAgentOutputParser extends AgentMultiActionOutputParser {
   }
 
   async parse(text: string): Promise<AgentAction[] | AgentFinish> {
-    throw new Error(`ToolCallingAgentOutputParser can only parse messages.\nPassed input: ${text}`)
+    throw new Error(`ToolCallingAgentOutputParser chỉ có thể phân tích tin nhắn.\nĐầu vào được truyền: ${text}.`)
   }
 
   async parseResult(generations: ChatGeneration[]) {
     if ('message' in generations[0] && isBaseMessage(generations[0].message)) {
       return parseAIMessageToToolAction(generations[0].message)
     }
-    throw new Error('parseResult on ToolCallingAgentOutputParser only works on ChatGeneration output')
+    throw new Error('parseResult trong ToolCallingAgentOutputParser chỉ hoạt động với đầu ra của ChatGeneration.')
   }
 
   getFormatInstructions(): string {
-    throw new Error('getFormatInstructions not implemented inside ToolCallingAgentOutputParser.')
+    throw new Error('getFormatInstructions chưa được triển khai trong ToolCallingAgentOutputParser.')
   }
 }
 

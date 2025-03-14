@@ -124,10 +124,10 @@ const Variables = () => {
 
   const deleteVariable = async (variable) => {
     const confirmPayload = {
-      title: `Delete`,
-      description: `Delete variable ${variable.name}?`,
-      confirmButtonName: 'Delete',
-      cancelButtonName: 'Cancel'
+      title: `Xoá biến`,
+      description: `Xoá biến ${variable.name}?`,
+      confirmButtonName: 'Xoá',
+      cancelButtonName: 'Đóng'
     }
     const isConfirmed = await confirm(confirmPayload)
 
@@ -136,7 +136,7 @@ const Variables = () => {
         const deleteResp = await variablesApi.deleteVariable(variable.id)
         if (deleteResp.data) {
           enqueueSnackbar({
-            message: 'Variable deleted',
+            message: 'Đã xoá biến',
             options: {
               key: new Date().getTime() + Math.random(),
               variant: 'success',
@@ -151,9 +151,7 @@ const Variables = () => {
         }
       } catch (error) {
         enqueueSnackbar({
-          message: `Failed to delete Variable: ${
-            typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-          }`,
+          message: `Không thể xóa biến: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'error',
@@ -204,9 +202,9 @@ const Variables = () => {
           <ErrorBoundary error={error} />
         ) : (
           <Stack flexDirection='column' sx={{ gap: 3 }}>
-            <ViewHeader onSearchChange={onSearchChange} search={true} searchPlaceholder='Search Variables' title='Variables'>
+            <ViewHeader onSearchChange={onSearchChange} search={true} searchPlaceholder='Tìm kiếm biến' title='Biến'>
               <Button variant='outlined' sx={{ borderRadius: 2, height: '100%' }} onClick={() => setShowHowToDialog(true)}>
-                How To Use
+                Cách sử dụng
               </Button>
               <StyledButton
                 disabled={!isLogin}
@@ -216,7 +214,7 @@ const Variables = () => {
                 startIcon={<IconPlus />}
                 id='btn_createVariable'
               >
-                Add Variable
+                Thêm
               </StyledButton>
             </ViewHeader>
             {isLogin ? (
@@ -237,11 +235,11 @@ const Variables = () => {
                       }}
                     >
                       <TableRow>
-                        <StyledTableCell>Name</StyledTableCell>
-                        <StyledTableCell>Value</StyledTableCell>
-                        <StyledTableCell>Type</StyledTableCell>
-                        <StyledTableCell>Last Updated</StyledTableCell>
-                        <StyledTableCell>Created</StyledTableCell>
+                        <StyledTableCell>Tên</StyledTableCell>
+                        <StyledTableCell>Giá trị</StyledTableCell>
+                        <StyledTableCell>Loại</StyledTableCell>
+                        <StyledTableCell>Lần cập nhật cuối</StyledTableCell>
+                        <StyledTableCell>Thời gian tạo</StyledTableCell>
                         <StyledTableCell> </StyledTableCell>
                         <StyledTableCell> </StyledTableCell>
                       </TableRow>

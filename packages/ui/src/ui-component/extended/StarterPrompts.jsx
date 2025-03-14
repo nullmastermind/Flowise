@@ -66,7 +66,7 @@ const StarterPrompts = ({ dialogProps }) => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Conversation Starter Prompts Saved',
+          message: 'Đã lưu gợi ý bắt đầu',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -81,7 +81,7 @@ const StarterPrompts = ({ dialogProps }) => {
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save Conversation Starter Prompts: ${
+        message: `Không thể lưu gợi ý bắt đầu: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {
@@ -150,7 +150,7 @@ const StarterPrompts = ({ dialogProps }) => {
         >
           <IconBulb size={30} color='#2d6a4f' />
           <span style={{ color: '#2d6a4f', marginLeft: 10, fontWeight: 500 }}>
-            Starter prompts will only be shown when there is no messages on the chat
+            Gợi ý bắt đầu sẽ chỉ hiển thị khi không có tin nhắn nào trong cuộc trò chuyện.
           </span>
         </div>
       </div>
@@ -199,7 +199,7 @@ const StarterPrompts = ({ dialogProps }) => {
         </List>
       </Box>
       <StyledButton variant='contained' onClick={onSave}>
-        Save
+        Lưu
       </StyledButton>
     </>
   )

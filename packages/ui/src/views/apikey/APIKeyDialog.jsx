@@ -199,13 +199,13 @@ const APIKeyDialog = ({ show, dialogProps, onCancel, onConfirm, setError }) => {
 
         <Box sx={{ p: 2 }}>
           <Stack sx={{ position: 'relative' }} direction='row'>
-            <Typography variant='overline'>Key Name</Typography>
+            <Typography variant='overline'>Tên</Typography>
           </Stack>
           <OutlinedInput
             id='keyName'
             type='string'
             fullWidth
-            placeholder='My New Key'
+            placeholder='Tên Key mới'
             value={keyName}
             name='keyName'
             onChange={(e) => setKeyName(e.target.value)}

@@ -109,7 +109,7 @@ const ViewHeader = ({
                 }
               }}
               variant='outlined'
-              placeholder={`${searchPlaceholder} ${isDesktop ? keyboardShortcut : ''}`}
+              placeholder={`${searchPlaceholder}`}
               onChange={onSearchChange}
               startAdornment={
                 <Box

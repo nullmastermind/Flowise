@@ -69,7 +69,7 @@ export class _HashedDocument implements HashedDocumentInterface {
       this.contentHash = contentHash
       this.metadataHash = metadataHash
     } catch (e) {
-      throw new Error(`Failed to hash metadata: ${e}. Please use a dict that can be serialized using json.`)
+      throw new Error(`Không thể băm (hash) metadata: ${e}. Vui lòng sử dụng một dict có thể được tuần tự hóa bằng JSON.`)
     }
 
     this.hash_ = this._hashStringToUUID(this.contentHash + this.metadataHash)
@@ -175,7 +175,7 @@ export function _deduplicateInOrder(hashedDocuments: HashedDocumentInterface[]):
 
   for (const hashedDoc of hashedDocuments) {
     if (!hashedDoc.hash_) {
-      throw new Error('Hashed document does not have a hash')
+      throw new Error('Tài liệu đã băm không có giá trị băm.')
     }
 
     if (!seen.has(hashedDoc.hash_)) {
@@ -194,7 +194,7 @@ export function _getSourceIdAssigner(sourceIdKey: StringOrDocFunc | null): (doc:
   } else if (typeof sourceIdKey === 'function') {
     return sourceIdKey
   } else {
-    throw new Error(`sourceIdKey should be null, a string or a function, got ${typeof sourceIdKey}`)
+    throw new Error(`sourceIdKey phải là null, một chuỗi hoặc một hàm, nhưng nhận được kiểu dữ liệu ${typeof sourceIdKey}.`)
   }
 }
 
@@ -236,7 +236,7 @@ export async function index(args: IndexArgs): Promise<IndexingResult> {
   const { batchSize = 100, cleanup, sourceIdKey, cleanupBatchSize = 1000, forceUpdate = false, vectorStoreName } = options ?? {}
 
   if (cleanup === 'incremental' && !sourceIdKey) {
-    throw new Error("sourceIdKey is required when cleanup mode is incremental. Please provide through 'options.sourceIdKey'.")
+    throw new Error("sourceIdKey là bắt buộc khi chế độ dọn dẹp là 'incremental'. Vui lòng cung cấp thông qua 'options.sourceIdKey'.")
   }
 
   if (vectorStoreName) {
@@ -266,7 +266,7 @@ export async function index(args: IndexArgs): Promise<IndexingResult> {
       hashedDocs.forEach((_hashedDoc, index) => {
         const source = sourceIds[index]
         if (source === null) {
-          throw new Error('sourceIdKey must be provided when cleanup is incremental')
+          throw new Error("sourceIdKey phải được cung cấp khi chế độ dọn dẹp là 'incremental'.")
         }
       })
     }
@@ -314,7 +314,7 @@ export async function index(args: IndexArgs): Promise<IndexingResult> {
 
     if (cleanup === 'incremental') {
       sourceIds.forEach((sourceId) => {
-        if (!sourceId) throw new Error('Source id cannot be null')
+        if (!sourceId) throw new Error('ID nguồn không thể là null')
       })
       const uidsToDelete = await recordManager.listKeys({
         before: indexStartDt,

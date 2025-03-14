@@ -89,10 +89,10 @@ const Documents = ({ storeType = import.meta.env.VITE_DOCUMENT_STORE_TYPE }) => 
 
   const addNew = () => {
     const dialogProp = {
-      title: 'Add New Document Store',
+      title: 'Thêm kho dữ liệu mới',
       type: 'ADD',
-      cancelButtonName: 'Cancel',
-      confirmButtonName: 'Add'
+      cancelButtonName: 'Đóng',
+      confirmButtonName: 'Thêm'
     }
     setDialogProps(dialogProp)
     setShowDialog(true)
@@ -155,7 +155,7 @@ const Documents = ({ storeType = import.meta.env.VITE_DOCUMENT_STORE_TYPE }) => 
     <MainCard>
       {storeType === 's3' ? (
         <Stack flexDirection='column' sx={{ gap: 1 }}>
-          <ViewHeader title='Document Store'></ViewHeader>
+          <ViewHeader title='Kho tài liệu'></ViewHeader>
           {isLogin ? (
             <S3Explorer
               apiBaseUrl={import.meta.env.VITE_DOCUMENT_STORE_BASE_URL}
@@ -164,7 +164,7 @@ const Documents = ({ storeType = import.meta.env.VITE_DOCUMENT_STORE_TYPE }) => 
               displayPrefixes={displayPrefixes}
             />
           ) : (
-            <div>Đăng nhập để xem Document Store. </div>
+            <div>Đăng nhập để xem Kho tài liệu. </div>
           )}
         </Stack>
       ) : (
@@ -173,7 +173,7 @@ const Documents = ({ storeType = import.meta.env.VITE_DOCUMENT_STORE_TYPE }) => 
             <ErrorBoundary error={error} />
           ) : isLogin ? (
             <Stack flexDirection='column' sx={{ gap: 3 }}>
-              <ViewHeader onSearchChange={onSearchChange} search={true} searchPlaceholder='Search Name' title='Document Store'>
+              <ViewHeader onSearchChange={onSearchChange} search={true} searchPlaceholder='Tìm theo tên' title='Kho tài liệu'>
                 <ToggleButtonGroup sx={{ borderRadius: 2, maxHeight: 40 }} value={view} color='primary' exclusive onChange={handleChange}>
                   <ToggleButton
                     sx={{
@@ -207,7 +207,7 @@ const Documents = ({ storeType = import.meta.env.VITE_DOCUMENT_STORE_TYPE }) => 
                   startIcon={<IconPlus />}
                   id='btn_createVariable'
                 >
-                  Add New
+                  Thêm mới
                 </StyledButton>
               </ViewHeader>
               {!view || view === 'card' ? (
@@ -237,12 +237,12 @@ const Documents = ({ storeType = import.meta.env.VITE_DOCUMENT_STORE_TYPE }) => 
                     >
                       <TableRow>
                         <TableCell>&nbsp;</TableCell>
-                        <TableCell>Name</TableCell>
-                        <TableCell>Description</TableCell>
-                        <TableCell>Connected flows</TableCell>
-                        <TableCell>Total characters</TableCell>
-                        <TableCell>Total chunks</TableCell>
-                        <TableCell>Loader types</TableCell>
+                        <TableCell>Tên</TableCell>
+                        <TableCell>Mô tả</TableCell>
+                        <TableCell>Flows đã kết nối</TableCell>
+                        <TableCell>Tổng số ký tự</TableCell>
+                        <TableCell>Tổng số chunks</TableCell>
+                        <TableCell>Loại Loader</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>

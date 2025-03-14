@@ -78,7 +78,7 @@ const ExportDialog = ({ show, onCancel, onExport }) => {
       aria-describedby='export-dialog-description'
     >
       <DialogTitle sx={{ fontSize: '1rem' }} id='export-dialog-title'>
-        {!isExporting ? 'Select Data to Export' : 'Exporting..'}
+        {!isExporting ? 'Chọn dữ liệu' : 'Đang xuất dữ liệu..'}
       </DialogTitle>
       <DialogContent>
         {!isExporting && (
@@ -120,7 +120,7 @@ const ExportDialog = ({ show, onCancel, onExport }) => {
       </DialogContent>
       {!isExporting && (
         <DialogActions>
-          <Button onClick={onCancel}>Cancel</Button>
+          <Button onClick={onCancel}>Đóng</Button>
           <Button
             disabled={selectedData.length === 0}
             variant='contained'
@@ -129,7 +129,7 @@ const ExportDialog = ({ show, onCancel, onExport }) => {
               onExport(selectedData)
             }}
           >
-            Export
+            Xuất dữ liệu
           </Button>
         </DialogActions>
       )}
@@ -218,7 +218,7 @@ const ProfileSection = ({ username, handleLogout }) => {
   const importAllSuccess = () => {
     dispatch({ type: REMOVE_DIRTY })
     enqueueSnackbar({
-      message: `Import All successful`,
+      message: `Nhúng thành công`,
       options: {
         key: new Date().getTime() + Math.random(),
         variant: 'success',
@@ -387,20 +387,20 @@ const ProfileSection = ({ username, handleLogout }) => {
                         <ListItemIcon>
                           <IconUsers size='1.3rem' />
                         </ListItemIcon>
-                        <ListItemText primary='Admin account' />
+                        <ListItemText primary='Tài khoản admin' />
                       </StyledListItem>
                     )}
                     <StyledListItem onClick={() => setExportDialogOpen(true)}>
                       <ListItemIcon>
                         <IconFileExport size='1.3rem' />
                       </ListItemIcon>
-                      <ListItemText primary='Export' />
+                      <ListItemText primary='Xuất dữ liệu' />
                     </StyledListItem>
                     <StyledListItem onClick={importAll}>
                       <ListItemIcon>
                         <IconFileUpload size='1.3rem' />
                       </ListItemIcon>
-                      <ListItemText primary='Import' />
+                      <ListItemText primary='Nhúng dữ liệu' />
                     </StyledListItem>
                     <input ref={inputRef} type='file' hidden onChange={fileChange} accept='.json' />
                     {username && (
@@ -408,7 +408,7 @@ const ProfileSection = ({ username, handleLogout }) => {
                         <ListItemIcon>
                           <IconLogout size='1.3rem' />
                         </ListItemIcon>
-                        <ListItemText primary='Logout' />
+                        <ListItemText primary='Đăng xuất' />
                       </StyledListItem>
                     )}
                   </List>

@@ -35,6 +35,8 @@ import {
 } from '../commonUtils'
 import { END, StateGraph } from '@langchain/langgraph'
 import { StructuredTool } from '@langchain/core/tools'
+import { llmSupportsVision } from '../../../src/multiModalUtils'
+import { getFileFromStorage } from '../../../src'
 
 const defaultApprovalPrompt = `You are about to execute tool: {tools}. Ask if user want to proceed`
 const examplePrompt = 'You are a research assistant who can search for up-to-date info using search engine.'
@@ -710,7 +712,7 @@ async function agentNode(
     input,
     options
   }: {
-    state: ISeqAgentsState
+    state: any
     llm: BaseChatModel
     interrupt: boolean
     agent: AgentExecutor | RunnableSequence
@@ -729,6 +731,46 @@ async function agentNode(
 
     // @ts-ignore
     state.messages = restructureMessages(llm, state)
+
+    // Check if model supports vision and add images to messages if it does
+    if (llmSupportsVision(llm) && options.uploads && options.uploads.length && options?.uploads[0]?.mime.startsWith('image/')) {
+      const imageContents = []
+
+      // Process all images in uploads
+      for (const upload of options.uploads) {
+        if (upload.mime.startsWith('image/')) {
+          const contents = await getFileFromStorage(upload.name, options.chatflowid, options.chatId)
+          // Convert image to base64
+          const bf = 'data:' + upload.mime + ';base64,' + contents.toString('base64')
+          imageContents.push({
+            type: 'image_url',
+            image_url: {
+              url: bf,
+              detail: 'low'
+            }
+          })
+        }
+      }
+
+      if (imageContents.length > 0) {
+        // Create a message with all images
+        const imageMessage = new HumanMessage({
+          content: imageContents
+        })
+
+        // Add the image message to state
+        const messages = state.messages as unknown as BaseMessage[]
+
+        // Insert the image message before the last message
+        if (messages.length > 0) {
+          messages.splice(messages.length - 1, 0, imageMessage)
+        } else {
+          messages.push(imageMessage)
+        }
+
+        state.messages = messages
+      }
+    }
 
     let result = await agent.invoke({ ...state, signal: abortControllerSignal.signal }, config)
 
@@ -886,7 +928,7 @@ const getReturnOutput = async (nodeData: INodeData, input: string, options: ICom
 
 const convertCustomMessagesToBaseMessages = (messages: string[], name: string, additional_kwargs: ICommonObject) => {
   return messages.map((message) => {
-    return new HumanMessage({
+    return new AIMessage({
       content: message,
       name,
       additional_kwargs: Object.keys(additional_kwargs).length ? additional_kwargs : undefined

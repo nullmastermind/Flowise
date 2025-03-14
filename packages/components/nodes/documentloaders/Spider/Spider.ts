@@ -45,7 +45,7 @@ class SpiderLoader extends BaseDocumentLoader {
     if (this.mode === 'scrape') {
       const response = await app.scrapeUrl(this.url, this.params)
       if (!response.success) {
-        throw new Error(`Spider: Failed to scrape URL. Error: ${response.error}`)
+        throw new Error(`Spider: Không thể trích xuất dữ liệu từ URL. Lỗi: ${response.error}`)
       }
       spiderDocs = [response.data]
     } else if (this.mode === 'crawl') {
@@ -54,11 +54,11 @@ class SpiderLoader extends BaseDocumentLoader {
       }
       const response = await app.crawlUrl(this.url, this.params)
       if (!response.success) {
-        throw new Error(`Spider: Failed to crawl URL. Error: ${response.error}`)
+        throw new Error(`Spider: Không thể thu thập dữ liệu từ URL. Lỗi: ${response.error}`)
       }
       spiderDocs = response.data
     } else {
-      throw new Error(`Unrecognized mode '${this.mode}'. Expected one of 'crawl', 'scrape'.`)
+      throw new Error(`Chế độ '${this.mode}' không được nhận diện. Giá trị hợp lệ mong muốn là một trong các chế độ: 'crawl', 'scrape'.`)
     }
 
     return spiderDocs.map(

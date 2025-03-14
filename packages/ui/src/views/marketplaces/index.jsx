@@ -181,10 +181,10 @@ const Marketplace = () => {
 
   const onDeleteCustomTemplate = async (template) => {
     const confirmPayload = {
-      title: `Delete`,
-      description: `Delete Custom Template ${template.name}?`,
-      confirmButtonName: 'Delete',
-      cancelButtonName: 'Cancel'
+      title: `Xoá mẫu`,
+      description: `Xoá mẫu [${template.name}]?`,
+      confirmButtonName: 'Xoá',
+      cancelButtonName: 'Đóng'
     }
     const isConfirmed = await confirm(confirmPayload)
 
@@ -193,7 +193,7 @@ const Marketplace = () => {
         const deleteResp = await marketplacesApi.deleteCustomTemplate(template.id)
         if (deleteResp.data) {
           enqueueSnackbar({
-            message: 'Custom Template deleted successfully!',
+            message: 'Xoá mẫu thành công!',
             options: {
               key: new Date().getTime() + Math.random(),
               variant: 'success',
@@ -208,9 +208,7 @@ const Marketplace = () => {
         }
       } catch (error) {
         enqueueSnackbar({
-          message: `Failed to delete custom template: ${
-            typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-          }`,
+          message: `Không thể xoá mẫu: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data}`,
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'error',
@@ -284,7 +282,7 @@ const Marketplace = () => {
 
   const onUseTemplate = (selectedTool) => {
     const dialogProp = {
-      title: 'Add New Tool',
+      title: 'Thêm mới Tool',
       type: 'IMPORT',
       cancelButtonName: 'Cancel',
       confirmButtonName: 'Add',
@@ -449,7 +447,7 @@ const Marketplace = () => {
                     }}
                   >
                     <InputLabel size='small' id='type-badge-label'>
-                      Type
+                      Loại
                     </InputLabel>
                     <Select
                       size='small'
@@ -507,8 +505,8 @@ const Marketplace = () => {
               }
               onSearchChange={onSearchChange}
               search={true}
-              searchPlaceholder='Search Name/Description/Node'
-              title='Templates'
+              searchPlaceholder='Tìm theo tên, mô tả, node'
+              title='Mẫu'
             >
               <ToggleButtonGroup
                 sx={{ borderRadius: 2, height: '100%' }}
@@ -546,8 +544,8 @@ const Marketplace = () => {
             {isLogin ? (
               <>
                 <Tabs value={activeTabValue} onChange={handleTabChange} textColor='primary' aria-label='tabs' centered>
-                  <Tab value={0} label='Community Templates'></Tab>
-                  <Tab value={1} label='My Templates' />
+                  <Tab value={0} label='Mẫu cộng đồng'></Tab>
+                  <Tab value={1} label='Mẫu của tôi' />
                 </Tabs>
                 <TabPanel value={activeTabValue} index={0}>
                   <Stack direction='row' sx={{ gap: 2, my: 2, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -578,7 +576,7 @@ const Marketplace = () => {
                       onClick={() => clearAllUsecases()}
                       startIcon={<IconX />}
                     >
-                      Clear All
+                      Xoá hết filter
                     </Button>
                   )}
 
@@ -750,7 +748,7 @@ const Marketplace = () => {
                       <Box sx={{ p: 2, height: 'auto' }}>
                         <img style={{ objectFit: 'cover', height: '25vh', width: 'auto' }} src={WorkflowEmptySVG} alt='WorkflowEmptySVG' />
                       </Box>
-                      <div>User chưa có Không template nào được lưu</div>
+                      <div>User chưa có template nào được lưu</div>
                     </Stack>
                   )}
                 </TabPanel>

@@ -234,7 +234,7 @@ const fetchAirtableData = async (url: string, params: ICommonObject, accessToken
     const response = await axios.get(url, { params, headers })
     return response.data
   } catch (error) {
-    throw new Error(`Failed to fetch ${url} from Airtable: ${error}`)
+    throw new Error(`Đã xảy ra lỗi truy vấn ${url} từ Airtable: ${error}`)
   }
 }
 

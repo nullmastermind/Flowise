@@ -165,7 +165,7 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Chatbot Configuration Saved',
+          message: 'Đã lưu cấu hình Chatbot',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -180,7 +180,7 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save Chatbot Configuration: ${
+        message: `Không thể lưu cấu hình Chatbot: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {
@@ -202,7 +202,7 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
       const saveResp = await chatflowsApi.updateChatflow(chatflowid, { isPublish: checked })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Chatbot Configuration Saved',
+          message: 'Đã lưu cấu hình Chatbot',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -217,7 +217,7 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
       }
     } catch (error) {
       enqueueSnackbar({
-        message: `Failed to save Chatbot Configuration: ${
+        message: `Không thể lưu cấu hình Chatbot: ${
           typeof error.response.data === 'object' ? error.response.data.message : error.response.data
         }`,
         options: {

@@ -10,6 +10,23 @@ import { BaseDocumentLoader } from 'langchain/document_loaders/base'
 import { Document } from '@langchain/core/documents'
 import { getFileFromStorage } from '../../../src/storageUtils'
 import { handleEscapeCharacters, mapMimeTypeToExt } from '../../../src/utils'
+import * as XLSX from 'xlsx'
+
+class XLSXLoader extends BaseDocumentLoader {
+  constructor(public blob: Blob) {
+    super()
+  }
+
+  public async load(): Promise<Document[]> {
+    const arrayBuffer = await this.blob.arrayBuffer()
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+    const sheetName = workbook.SheetNames[0]
+    const sheet = workbook.Sheets[sheetName]
+    const data = XLSX.utils.sheet_to_json(sheet)
+
+    return data.map((row: any) => new Document({ pageContent: JSON.stringify(row), metadata: {} }))
+  }
+}
 
 class File_DocumentLoaders implements INode {
   label: string
@@ -192,8 +209,8 @@ class File_DocumentLoaders implements INode {
       jsonl: (blob) => new JSONLinesLoader(blob, '/' + pointerName.trim()),
       txt: (blob) => new TextLoader(blob),
       csv: (blob) => new CSVLoader(blob),
-      xls: (blob) => new CSVLoader(blob),
-      xlsx: (blob) => new CSVLoader(blob),
+      xls: (blob) => new XLSXLoader(blob),
+      xlsx: (blob) => new XLSXLoader(blob),
       docx: (blob) => new DocxLoader(blob),
       doc: (blob) => new DocxLoader(blob),
       pdf: (blob) =>

@@ -50,7 +50,7 @@ const Tools = () => {
   const onUploadFile = (file) => {
     try {
       const dialogProp = {
-        title: 'Add New Tool',
+        title: 'Thêm mới Tool',
         type: 'IMPORT',
         cancelButtonName: 'Cancel',
         confirmButtonName: 'Save',
@@ -81,7 +81,7 @@ const Tools = () => {
 
   const addNew = () => {
     const dialogProp = {
-      title: 'Add New Tool',
+      title: 'Thêm mới Tool',
       type: 'ADD',
       cancelButtonName: 'Cancel',
       confirmButtonName: 'Add'
@@ -92,7 +92,7 @@ const Tools = () => {
 
   const edit = (selectedTool) => {
     const dialogProp = {
-      title: 'Edit Tool',
+      title: 'Chỉnh sửa công cụ',
       type: 'EDIT',
       cancelButtonName: 'Cancel',
       confirmButtonName: 'Save',
@@ -140,7 +140,7 @@ const Tools = () => {
           <ErrorBoundary error={error} />
         ) : (
           <Stack flexDirection='column' sx={{ gap: 3 }}>
-            <ViewHeader onSearchChange={onSearchChange} search={true} searchPlaceholder='Search Tools' title='Tools'>
+            <ViewHeader onSearchChange={onSearchChange} search={true} searchPlaceholder='Tìm công cụ' title='Công cụ'>
               <ToggleButtonGroup sx={{ borderRadius: 2, maxHeight: 40 }} value={view} color='primary' exclusive onChange={handleChange}>
                 <ToggleButton
                   sx={{
@@ -175,7 +175,7 @@ const Tools = () => {
                   startIcon={<IconFileUpload />}
                   sx={{ borderRadius: 2, height: 40 }}
                 >
-                  Load
+                  Tải lên
                 </Button>
                 <input style={{ display: 'none' }} ref={inputRef} type='file' hidden accept='.json' onChange={(e) => handleFileUpload(e)} />
               </Box>
@@ -187,7 +187,7 @@ const Tools = () => {
                   startIcon={<IconPlus />}
                   sx={{ borderRadius: 2, height: 40 }}
                 >
-                  Create
+                  Thêm
                 </StyledButton>
               </ButtonGroup>
             </ViewHeader>

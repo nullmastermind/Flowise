@@ -52,7 +52,7 @@ const Leads = ({ dialogProps }) => {
       })
       if (saveResp.data) {
         enqueueSnackbar({
-          message: 'Leads configuration Saved',
+          message: 'Đã lưu cấu hình Leads',
           options: {
             key: new Date().getTime() + Math.random(),
             variant: 'success',
@@ -68,7 +68,7 @@ const Leads = ({ dialogProps }) => {
     } catch (error) {
       const errorData = error.response.data || `${error.response.status}: ${error.response.statusText}`
       enqueueSnackbar({
-        message: `Failed to save Leads configuration: ${errorData}`,
+        message: `Không thể lưu cấu hình Leads: ${errorData}`,
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',

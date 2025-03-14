@@ -225,10 +225,10 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
     }
   }
 
-  console.log(
-    'Before',
-    messages.map((msg) => `${msg.constructor.name}: ${msg.content}`)
-  )
+  // console.log(
+  //   'Before',
+  //   messages.map((msg) => `${msg.constructor.name}: ${msg.content}`)
+  // )
 
   const isToolMessage = (message: BaseMessage) => message instanceof ToolMessage || message.constructor.name === 'ToolMessageChunk'
   const isAIMessage = (message: BaseMessage) => message instanceof AIMessage || message.constructor.name === 'AIMessageChunk'
@@ -291,10 +291,10 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
     }
   }
 
-  console.log(
-    'After',
-    messages.map((msg) => `${msg.constructor.name}: ${msg.content}`)
-  )
+  // console.log(
+  //   'After',
+  //   messages.map((msg) => `${msg.constructor.name}: ${msg.content}`)
+  // )
 
   return messages
 }

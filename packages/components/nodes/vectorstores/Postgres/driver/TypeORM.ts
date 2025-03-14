@@ -20,7 +20,7 @@ export class TypeORMDriver extends VectorStoreDriver {
         try {
           additionalConfiguration = typeof additionalConfig === 'object' ? additionalConfig : JSON.parse(additionalConfig)
         } catch (exception) {
-          throw new Error('Invalid JSON in the Additional Configuration: ' + exception)
+          throw new Error('JSON không hợp lệ trong cấu hình bổ sung:' + exception)
         }
       }
 
@@ -89,7 +89,7 @@ export class TypeORMDriver extends VectorStoreDriver {
         try {
           instance.appDataSource.getRepository(instance.documentEntity).delete(ids)
         } catch (e) {
-          console.error('Failed to delete')
+          console.error('Không thể xoá')
         }
       }
     }
@@ -114,7 +114,7 @@ export class TypeORMDriver extends VectorStoreDriver {
       case 'euclidean':
         return '<->'
       default:
-        throw new Error(`Unknown distance strategy: ${distanceStrategy}`)
+        throw new Error(`Distance strategy không xác định : ${distanceStrategy}`)
     }
   }
 
