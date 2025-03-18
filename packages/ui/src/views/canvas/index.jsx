@@ -100,6 +100,13 @@ const Canvas = () => {
 
   const [nodes, setNodes, onNodesChange] = useNodesState()
   const [edges, setEdges, onEdgesChange] = useEdgesState()
+
+  const [selectedNode, setSelectedNode] = useState(null)
+  const [isUpsertButtonEnabled, setIsUpsertButtonEnabled] = useState(false)
+  const [isSyncNodesButtonEnabled, setIsSyncNodesButtonEnabled] = useState(false)
+
+  const reactFlowWrapper = useRef(null)
+
   const { value, setValue, backLength, forwardLength, back, forward, reset: resetInitUndo } = useHistoryTravel(nodes ?? [], 20)
 
   useEffect(() => {
@@ -129,25 +136,11 @@ const Canvas = () => {
 
   useEffect(() => {
     if (JSON.stringify(value) !== '[]' && isBacked) {
-      console.log('33333333333')
       setNodes(value.nodes)
       setEdges(value.edges)
       setIsBacked(false)
     }
   }, [value, isBacked])
-
-  // console.log(
-  //   '🚀 ~ edges:',
-  //   { edges, nodes, value, backLength, forwardLength, isUndo },
-  //   reactFlowInstance?.getNodes(),
-  //   reactFlowInstance?.getEdges()
-  // )
-
-  const [selectedNode, setSelectedNode] = useState(null)
-  const [isUpsertButtonEnabled, setIsUpsertButtonEnabled] = useState(false)
-  const [isSyncNodesButtonEnabled, setIsSyncNodesButtonEnabled] = useState(false)
-
-  const reactFlowWrapper = useRef(null)
 
   // ==============================|| Chatflow API ||============================== //
 
@@ -192,41 +185,39 @@ const Canvas = () => {
     const sourceNodeId = params.sourceHandle.split('-')[0]
     const targetInput = params.targetHandle.split('-')[2]
 
-    const newNodes = nodes.map((node) => {
-      if (node.id === targetNodeId) {
-        setTimeout(() => setDirty(), 0)
-        let value
-        const inputAnchor = node.data.inputAnchors.find((ancr) => ancr.name === targetInput)
-        const inputParam = node.data.inputParams.find((param) => param.name === targetInput)
+    setNodes((nodes) =>
+      nodes.map((node) => {
+        if (node.id === targetNodeId) {
+          setTimeout(() => setDirty(), 0)
+          let value
+          const inputAnchor = node.data.inputAnchors.find((ancr) => ancr.name === targetInput)
+          const inputParam = node.data.inputParams.find((param) => param.name === targetInput)
 
-        if (inputAnchor && inputAnchor.list) {
-          const newValues = node.data.inputs[targetInput] || []
-          if (targetInput === 'tools') {
-            rearrangeToolsOrdering(newValues, sourceNodeId)
+          if (inputAnchor && inputAnchor.list) {
+            const newValues = node.data.inputs[targetInput] || []
+            if (targetInput === 'tools') {
+              rearrangeToolsOrdering(newValues, sourceNodeId)
+            } else {
+              newValues.push(`{{${sourceNodeId}.data.instance}}`)
+            }
+            value = newValues
+          } else if (inputParam && inputParam.acceptVariable) {
+            value = node.data.inputs[targetInput] || ''
           } else {
-            newValues.push(`{{${sourceNodeId}.data.instance}}`)
+            value = `{{${sourceNodeId}.data.instance}}`
           }
-          value = newValues
-        } else if (inputParam && inputParam.acceptVariable) {
-          value = node.data.inputs[targetInput] || ''
-        } else {
-          value = `{{${sourceNodeId}.data.instance}}`
-        }
-        node.data = {
-          ...node.data,
-          inputs: {
-            ...node.data.inputs,
-            [targetInput]: value
+          node.data = {
+            ...node.data,
+            inputs: {
+              ...node.data.inputs,
+              [targetInput]: value
+            }
           }
         }
-      }
-      return node
-    })
-
-    const newEdges = addEdge(newEdge, edges)
-    setNodes(newEdge)
-    setEdges(newEdges)
-    resetInitUndo({ nodes: newNodes, edges: newEdges })
+        return node
+      })
+    )
+    setEdges((ed) => addEdge(newEdge, ed))
   }
 
   const handleLoadFlow = (file) => {
