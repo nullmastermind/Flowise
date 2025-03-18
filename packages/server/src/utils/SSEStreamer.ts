@@ -216,9 +216,9 @@ export class SSEStreamer implements IServerSideEventStreamer {
     if (client) {
       const clientResponse = {
         event: 'error',
-        // data: msg
-        data: `Agent đang tạm dừng dịch vụ để nâng cấp lên phiên bản mới. Vui lòng quay lại sau 30 phút nữa.
-Cảm ơn bạn đã thông cảm và kiên nhẫn chờ đợi.`
+        data: msg
+        //         data: `Agent đang tạm dừng dịch vụ để nâng cấp lên phiên bản mới. Vui lòng quay lại sau 30 phút nữa.
+        // Cảm ơn bạn đã thông cảm và kiên nhẫn chờ đợi.`
       }
       client.response.write('message\ndata:' + JSON.stringify(clientResponse) + '\n\n')
     }
