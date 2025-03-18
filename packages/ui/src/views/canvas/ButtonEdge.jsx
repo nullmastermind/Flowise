@@ -21,7 +21,7 @@ const ButtonEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
     targetPosition
   })
 
-  const { deleteEdge, setIsUndo } = useContext(flowContext)
+  const { deleteEdge } = useContext(flowContext)
 
   const dispatch = useDispatch()
 
@@ -29,7 +29,6 @@ const ButtonEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
     evt.stopPropagation()
     deleteEdge(id)
     dispatch({ type: SET_DIRTY })
-    setIsUndo(true)
   }
 
   return (

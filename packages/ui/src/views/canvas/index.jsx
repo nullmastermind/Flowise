@@ -53,10 +53,6 @@ import { usePrompt } from '@/utils/usePrompt'
 
 // const
 import { FLOWISE_CREDENTIAL_ID } from '@/store/constant'
-import { useHistoryTravel } from 'ahooks'
-import { IconArrowBackUp } from '@tabler/icons-react'
-import { IconArrowForwardUp } from '@tabler/icons-react'
-import { StyledFab } from '@/ui-component/button/StyledFab'
 
 const nodeTypes = { customNode: CanvasNode, stickyNote: StickyNote }
 const edgeTypes = { buttonedge: ButtonEdge }
@@ -79,7 +75,6 @@ const Canvas = () => {
 
   const { confirm } = useConfirm()
   const dispatch = useDispatch()
-  const [isBacked, setIsBacked] = useState(false)
   const canvas = useSelector((state) => state.canvas)
   const [canvasDataStore, setCanvasDataStore] = useState(canvas)
   const [chatflow, setChatflow] = useState(null)
@@ -88,7 +83,7 @@ const Canvas = () => {
       ? true
       : user?.role === 'MASTER_ADMIN' || (user?.role === 'ADMIN' && user.groupname === chatflow?.user?.groupname)
   )
-  const { reactFlowInstance, setReactFlowInstance, isUndo, setIsUndo } = useContext(flowContext)
+  const { reactFlowInstance, setReactFlowInstance } = useContext(flowContext)
 
   // ==============================|| Snackbar ||============================== //
 
@@ -100,48 +95,6 @@ const Canvas = () => {
 
   const [nodes, setNodes, onNodesChange] = useNodesState()
   const [edges, setEdges, onEdgesChange] = useEdgesState()
-  const { value, setValue, backLength, forwardLength, back, forward, reset: resetInitUndo } = useHistoryTravel(nodes ?? [], 20)
-
-  useEffect(() => {
-    if (reactFlowInstance && isUndo) {
-      const nodes = reactFlowInstance?.getNodes()
-      const edges = reactFlowInstance?.getEdges()
-      setValue({ nodes, edges })
-      setIsUndo(false)
-    }
-  }, [isUndo, reactFlowInstance])
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.ctrlKey && event.key === 'z') {
-        back()
-        setIsBacked(true)
-      } else if (event.ctrlKey && event.key === 'y') {
-        forward()
-        setIsBacked(true)
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (JSON.stringify(value) !== '[]' && isBacked) {
-      console.log('33333333333')
-      setNodes(value.nodes)
-      setEdges(value.edges)
-      setIsBacked(false)
-    }
-  }, [value, isBacked])
-
-  // console.log(
-  //   '🚀 ~ edges:',
-  //   { edges, nodes, value, backLength, forwardLength, isUndo },
-  //   reactFlowInstance?.getNodes(),
-  //   reactFlowInstance?.getEdges()
-  // )
 
   const [selectedNode, setSelectedNode] = useState(null)
   const [isUpsertButtonEnabled, setIsUpsertButtonEnabled] = useState(false)
@@ -192,41 +145,40 @@ const Canvas = () => {
     const sourceNodeId = params.sourceHandle.split('-')[0]
     const targetInput = params.targetHandle.split('-')[2]
 
-    const newNodes = nodes.map((node) => {
-      if (node.id === targetNodeId) {
-        setTimeout(() => setDirty(), 0)
-        let value
-        const inputAnchor = node.data.inputAnchors.find((ancr) => ancr.name === targetInput)
-        const inputParam = node.data.inputParams.find((param) => param.name === targetInput)
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === targetNodeId) {
+          setTimeout(() => setDirty(), 0)
+          let value
+          const inputAnchor = node.data.inputAnchors.find((ancr) => ancr.name === targetInput)
+          const inputParam = node.data.inputParams.find((param) => param.name === targetInput)
 
-        if (inputAnchor && inputAnchor.list) {
-          const newValues = node.data.inputs[targetInput] || []
-          if (targetInput === 'tools') {
-            rearrangeToolsOrdering(newValues, sourceNodeId)
+          if (inputAnchor && inputAnchor.list) {
+            const newValues = node.data.inputs[targetInput] || []
+            if (targetInput === 'tools') {
+              rearrangeToolsOrdering(newValues, sourceNodeId)
+            } else {
+              newValues.push(`{{${sourceNodeId}.data.instance}}`)
+            }
+            value = newValues
+          } else if (inputParam && inputParam.acceptVariable) {
+            value = node.data.inputs[targetInput] || ''
           } else {
-            newValues.push(`{{${sourceNodeId}.data.instance}}`)
+            value = `{{${sourceNodeId}.data.instance}}`
           }
-          value = newValues
-        } else if (inputParam && inputParam.acceptVariable) {
-          value = node.data.inputs[targetInput] || ''
-        } else {
-          value = `{{${sourceNodeId}.data.instance}}`
-        }
-        node.data = {
-          ...node.data,
-          inputs: {
-            ...node.data.inputs,
-            [targetInput]: value
+          node.data = {
+            ...node.data,
+            inputs: {
+              ...node.data.inputs,
+              [targetInput]: value
+            }
           }
         }
-      }
-      return node
-    })
+        return node
+      })
+    )
 
-    const newEdges = addEdge(newEdge, edges)
-    setNodes(newEdge)
-    setEdges(newEdges)
-    resetInitUndo({ nodes: newNodes, edges: newEdges })
+    setEdges((eds) => addEdge(newEdge, eds))
   }
 
   const handleLoadFlow = (file) => {
@@ -449,7 +401,6 @@ const Canvas = () => {
 
   const setDirty = () => {
     dispatch({ type: SET_DIRTY })
-    setIsUndo(true)
   }
 
   const checkIfUpsertAvailable = (nodes, edges) => {
@@ -484,7 +435,6 @@ const Canvas = () => {
       setNodes(initialFlow.nodes || [])
       setEdges(initialFlow.edges || [])
       dispatch({ type: SET_CHATFLOW, chatflow })
-      resetInitUndo({ nodes: initialFlow.nodes || [], edges: initialFlow.edges || [] })
     } else if (getSpecificChatflowApi?.error) {
       errorFailed(`Failed to retrieve ${canvasTitle}: ${getSpecificChatflowApi.error.response.data.message}`)
       return navigate(isAgentCanvas ? '/agentflows' : '/')
@@ -572,7 +522,6 @@ const Canvas = () => {
       } else {
         setNodes([])
         setEdges([])
-        resetInitUndo({ nodes: [], edges: [] })
       }
       dispatch({
         type: SET_CHATFLOW,
@@ -748,7 +697,7 @@ const Canvas = () => {
                               }
                             })
                           })
-                          setValue({ nodes, edges })
+
                           reactFlowInstance.setNodes(nodes)
                         }}
                       >
@@ -786,34 +735,7 @@ const Canvas = () => {
                       <IconRefreshAlert />
                     </Fab>
                   )}
-                  <div className='absolute right-[80px] top-[20px] flex items-center gap-5'>
-                    <StyledFab
-                      disabled={backLength === 0}
-                      size='small'
-                      aria-label='upsert'
-                      title='Undo'
-                      onClick={() => {
-                        back()
-                        setIsBacked(true)
-                      }}
-                    >
-                      <IconArrowBackUp />
-                    </StyledFab>
-                    <StyledFab
-                      disabled={forwardLength === 0}
-                      size='small'
-                      aria-label='upsert'
-                      title='Redo'
-                      onClick={() => {
-                        forward()
-                        setIsBacked(true)
-                      }}
-                    >
-                      <IconArrowForwardUp />
-                    </StyledFab>
-                    {isUpsertButtonEnabled && <VectorStorePopUp chatflowid={chatflowId} />}
-                  </div>
-
+                  {isUpsertButtonEnabled && <VectorStorePopUp chatflowid={chatflowId} />}
                   <ChatPopUp isAgentCanvas={isAgentCanvas} chatflowid={chatflowId} />
                 </ReactFlow>
               )}
