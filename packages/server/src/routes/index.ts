@@ -45,6 +45,7 @@ import versionRouter from './versions'
 import userRouter from './user'
 import adminRouter from './admin'
 import chatwootRouter from './chatwoot'
+import faqsRouter from './faqs'
 
 const router: Router = express.Router()
 
@@ -95,5 +96,6 @@ router.use('/user', userRouter)
 router.use('/user', userRouter)
 router.use('/admin', adminRouter)
 router.use('/chatwoot', chatwootRouter)
+router.use('/faq', faqsRouter)
 
 export default router

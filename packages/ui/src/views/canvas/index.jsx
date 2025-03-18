@@ -57,7 +57,7 @@ import { useHistoryTravel } from 'ahooks'
 import { IconArrowBackUp } from '@tabler/icons-react'
 import { IconArrowForwardUp } from '@tabler/icons-react'
 import { StyledFab } from '@/ui-component/button/StyledFab'
-import { IconBubbleText } from '@tabler/icons-react'
+import { FaqChatbot } from './faqchatbot/FaqChatbot'
 
 const nodeTypes = { customNode: CanvasNode, stickyNote: StickyNote }
 const edgeTypes = { buttonedge: ButtonEdge }
@@ -775,9 +775,7 @@ const Canvas = () => {
                     </Fab>
                   )}
                   <div className='absolute right-[80px] top-[20px] flex items-center gap-5'>
-                    <StyledFab size='small' aria-label='upsert' title='Undo' color='info'>
-                      <IconBubbleText />
-                    </StyledFab>
+                    <FaqChatbot chatflowid={chatflowId} isAgentCanvas={isAgentCanvas} />
                     <StyledFab
                       disabled={backLength === 0}
                       size='small'
