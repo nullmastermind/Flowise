@@ -3,12 +3,12 @@ import { CallbackManager, CallbackManagerForToolRun, Callbacks, parseCallbackCon
 import { BaseDynamicToolInput, DynamicTool, StructuredTool, ToolInputParsingException } from '@langchain/core/tools'
 import { BaseRetriever } from '@langchain/core/retrievers'
 import { ICommonObject, INode, INodeData, INodeParams } from '../../../src/Interface'
-import { getBaseClasses } from '../../../src/utils'
+import { getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
 import { SOURCE_DOCUMENTS_PREFIX } from '../../../src/agents'
 import { RunnableConfig } from '@langchain/core/runnables'
 import { customGet } from '../../sequentialagents/commonUtils'
 import { VectorStoreRetriever } from '@langchain/core/vectorstores'
-import axios from 'axios'
+import { createAwsOpenSearchClient } from '../../../src/openSearch'
 
 const howToUse = `Add additional filters to vector store. You can also filter with flow config, including the current "state":
 - \`$flow.sessionId\`
@@ -144,6 +144,13 @@ class Retriever_Tools implements INode {
     this.category = 'Tools'
     this.description = 'Use a retriever as allowed tool for agent'
     this.baseClasses = [this.type, 'DynamicTool', ...getBaseClasses(DynamicTool)]
+    this.credential = {
+      label: 'AWS Credential',
+      name: 'credential',
+      type: 'credential',
+      credentialNames: ['awsApi'],
+      optional: true
+    }
     this.inputs = [
       {
         label: 'Retriever Name',
@@ -171,6 +178,15 @@ class Retriever_Tools implements INode {
         description: 'Whether to return the full content of retrieved documents',
         optional: true,
         default: false
+      },
+      {
+        label: 'OpenSearch Index',
+        name: 'opensearchIndex',
+        type: 'string',
+        description: 'The OpenSearch index to query for full document content',
+        optional: true,
+        default: 'index-0',
+        additionalParams: true
       },
       {
         label: 'Return Raw Document',
@@ -221,6 +237,21 @@ class Retriever_Tools implements INode {
       score
     }
 
+    let credentials = { accessKeyId: '', secretAccessKey: '' }
+
+    if (nodeData.credential) {
+      const credentialData = await getCredentialData(nodeData.credential, options)
+      const accessKeyId = getCredentialParam('awsKey', credentialData, nodeData)
+      const secretAccessKey = getCredentialParam('awsSecret', credentialData, nodeData)
+
+      if (accessKeyId && secretAccessKey) {
+        credentials = {
+          accessKeyId,
+          secretAccessKey
+        }
+      }
+    }
+
     const flow = { chatflowId: options.chatflowid }
 
     const func = async ({ input }: { input: string }, _?: CallbackManagerForToolRun, flowConfig?: IFlowConfig) => {
@@ -243,37 +274,73 @@ class Retriever_Tools implements INode {
       }
       const docs = await retriever.invoke(input)
 
-      if (nodeData.inputs?.returnFullContent) {
+      if (nodeData.inputs?.returnFullContent && credentials.accessKeyId && credentials.secretAccessKey) {
         // Extract prefixes from docs
         const prefixes = docs
           .map((doc) => doc.metadata?.source?.replace('s3://cts-llm-docs-bucket/', ''))
           .filter((prefix): prefix is string => typeof prefix === 'string')
 
+        // console.log('🚀 ~ RetrieverTool.ts:249 ~ Retriever_Tools ~ func ~ prefixes:', { docs, credentials })
+
         if (prefixes.length > 0) {
           try {
-            // Call API to get full content
-            const response = await axios.post(
-              `${process.env.PDF_KNOWLEDGE_BASE_API_URL || 'http://3.231.34.3:8001'}/knowledge_base/get_pdf_content`,
-              {
-                prefix_list: prefixes
-              }
-            )
+            const client = createAwsOpenSearchClient(credentials.accessKeyId, credentials.secretAccessKey)
+            const opensearchIndex = (nodeData.inputs?.opensearchIndex as string) || 'index-0'
 
-            interface ContentItem {
-              content: string
-              prefix: string
+            // Track which docs were updated from OpenSearch
+            const updatedDocs = new Set<string>()
+            const contentMap = new Map<string, string>()
+            const handledSources = new Set<string>([])
+
+            // Query OpenSearch for each prefix to get all chunks
+            for (const prefix of prefixes) {
+              const sourceUri = `s3://${process.env.S3_STORAGE_BUCKET_NAME || 'cts-llm-docs-bucket'}/${prefix}`
+
+              if (handledSources.has(sourceUri)) {
+                continue
+              }
+
+              handledSources.add(sourceUri)
+
+              try {
+                // Search for all chunks with the given prefix
+                const response = await client.search({
+                  index: opensearchIndex,
+                  body: {
+                    query: {
+                      match: {
+                        'x-amz-bedrock-kb-source-uri': sourceUri
+                      }
+                    }
+                  }
+                })
+
+                // console.log(
+                //   'search:',
+                //   `s3://${process.env.S3_STORAGE_BUCKET_NAME || 'cts-llm-docs-bucket'}/${prefix}`,
+                //   response.body.hits.hits.length
+                // )
+
+                // Process search results
+                if (response.body.hits.total.value > 0) {
+                  // Combine all chunks for this prefix
+                  const chunks = response.body.hits.hits.map((hit: any) => {
+                    if (hit._source['x-amz-bedrock-kb-source-uri'] !== sourceUri) return ''
+                    return hit._source.text || hit._source.content || hit._source['AMAZON_BEDROCK_TEXT_CHUNK'] || ''
+                  })
+                  const fullContent = chunks.join('\n\n').trim()
+
+                  console.log('full content:', JSON.stringify(fullContent).substring(0, 100), fullContent.length)
+
+                  // Store the combined content
+                  contentMap.set(prefix, fullContent)
+                }
+              } catch (error) {
+                console.error(`Error querying OpenSearch for prefix ${prefix}:`, error)
+              }
             }
 
-            const result = response.data as { data: ContentItem[] }
-
-            // Create prefix -> content mapping
-            const contentMap = new Map<string, string>()
-            const updatedDocs = new Set<string>() // Track which docs were updated from API
-            result.data.forEach((item: ContentItem) => {
-              contentMap.set(item.prefix, item.content)
-            })
-
-            // Replace doc content with full content from API and track updated docs
+            // Update document content with full content from OpenSearch
             docs.forEach((doc) => {
               const prefix = doc.metadata?.source?.replace('s3://cts-llm-docs-bucket/', '')
               if (typeof prefix === 'string' && contentMap.has(prefix)) {
@@ -282,11 +349,11 @@ class Retriever_Tools implements INode {
               }
             })
 
-            // Deduplicate docs that were updated from API based on source
+            // Filter out duplicate documents
             const uniqueSources = new Map()
             const uniqueDocs = docs.filter((doc) => {
               if (!updatedDocs.has(doc.metadata?.source)) {
-                return true // Keep docs not updated from API
+                return true
               }
               if (!uniqueSources.has(doc.metadata?.source)) {
                 uniqueSources.set(doc.metadata?.source, true)
@@ -298,7 +365,7 @@ class Retriever_Tools implements INode {
             // Update original array in place
             docs.splice(0, docs.length, ...uniqueDocs)
           } catch (error) {
-            console.error('Error fetching full content:', error)
+            console.error('Error fetching full content from OpenSearch:', error)
           }
         }
       }
