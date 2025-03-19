@@ -57,6 +57,17 @@ import { ChatMessage } from '../database/entities/ChatMessage'
 import { IAction } from 'flowise-components'
 import { FLOWISE_METRIC_COUNTERS, FLOWISE_COUNTER_STATUS } from '../Interface.Metrics'
 import { validateChatflowAPIKey } from './validateKey'
+import { PutObjectCommand, S3Client, type _Object } from '@aws-sdk/client-s3'
+
+export const BUCKET_NAME = process.env.S3_STORAGE_BUCKET_NAME || 'unknown'
+
+export const s3Client = new S3Client({
+  credentials: {
+    accessKeyId: process.env.S3_STORAGE_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.S3_STORAGE_SECRET_ACCESS_KEY!
+  },
+  region: process.env.S3_STORAGE_REGION || 'us-east-1'
+})
 
 /**
  * Build Chatflow
@@ -239,7 +250,8 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
         baseURL,
         appServer.sseStreamer,
         true,
-        uploadedFilesContent
+        uploadedFilesContent,
+        chatflowid
       )
     }
 
@@ -554,7 +566,8 @@ const utilBuildAgentResponse = async (
   baseURL?: string,
   sseStreamer?: IServerSideEventStreamer,
   shouldStreamResponse?: boolean,
-  uploadedFilesContent?: string
+  uploadedFilesContent?: string,
+  chatFlowid?: string
 ) => {
   const appServer = getRunningExpressApp()
   try {
@@ -572,6 +585,20 @@ const utilBuildAgentResponse = async (
     )
     if (streamResults) {
       const { finalResult, finalAction, sourceDocuments, artifacts, usedTools, agentReasoning } = streamResults
+      console.log('🚀 ~ buildChatflow.ts:591 ~ chatFlowId:', chatFlowid)
+
+      if (chatFlowid === '2192b560-f3da-468d-80a4-a3aed97532be') {
+        // Transfer the finalResult as a string to a .txt file and push it to S3
+        const fileContent = Buffer.from(finalResult, 'utf-8')
+        const uploadParams = {
+          Bucket: BUCKET_NAME,
+          Key: `BKTTW/insights/${chatId}_${apiMessageId}.txt`,
+          Body: fileContent
+        }
+
+        await s3Client.send(new PutObjectCommand(uploadParams))
+      }
+
       const userMessage: Omit<IChatMessage, 'id'> = {
         role: 'userMessage',
         content: incomingInput.question,
