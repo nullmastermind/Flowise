@@ -10,9 +10,9 @@ const saveFaq = (faq) => client.post('/faq', faq)
 
 const importFaqs = (faqs) => client.post('/faq/importfaqs', faqs)
 
-const updateFaq = (id, faq, chatflowId) => client.put(`/faq/${id}?chatflowId=${chatflowId}`, faq)
+const updateFaq = (id, faq) => client.put(`/faq/${id}`, faq)
 
-const deleteFaq = (id, chatflowId) => client.delete(`/faq/${id}?chatflowId=${chatflowId}`)
+const deleteFaq = async (id, chatflowId) => client.delete(`/faq/${id}/${chatflowId}`)
 
 const deleteAllFaqs = (chatflowId) => client.delete(`/faq/deleteall/${chatflowId}`)
 

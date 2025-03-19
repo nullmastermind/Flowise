@@ -49,6 +49,11 @@ export const FaqChatbot = ({ chatflowid, isAgentCanvas }) => {
   const handleAddFaq = async () => {
     try {
       if (editingIndex !== null) {
+        if (!faqs[editingIndex].id) {
+          throw new Error('FAQ ID không tồn tại')
+        }
+        const res = await faqsApi.updateFaq(faqs[editingIndex].id, { question, answer, chatflowId: chatflowid })
+
         const updatedFaqs = [...faqs]
         updatedFaqs[editingIndex] = { question, answer }
         setFaqs(updatedFaqs)
@@ -60,10 +65,10 @@ export const FaqChatbot = ({ chatflowid, isAgentCanvas }) => {
       setQuestion('')
       setAnswer('')
       setAddFaqOpen(false)
+      setEditingIndex(null)
     } catch (error) {
-      console.log('🚀 ~ FaqChatbot.jsx:64 ~ handleAddFaq ~ error:', error)
       enqueueSnackbar({
-        message: 'Lỗi khi thêm FAQ',
+        message: editingIndex !== null ? 'Lỗi khi cập nhật FAQ' : 'Lỗi khi thêm FAQ',
         options: {
           key: new Date().getTime() + Math.random(),
           variant: 'error',
@@ -84,7 +89,6 @@ export const FaqChatbot = ({ chatflowid, isAgentCanvas }) => {
     setAnswer(faqs[index].answer)
     setAddFaqOpen(true)
   }
-
   const handleDeleteFaq = async (index) => {
     const confirmPayload = {
       title: `Xóa FAQ`,
@@ -95,8 +99,40 @@ export const FaqChatbot = ({ chatflowid, isAgentCanvas }) => {
     const isConfirmed = await confirm(confirmPayload)
 
     if (isConfirmed) {
-      const updatedFaqs = faqs.filter((_, i) => i !== index)
-      setFaqs(updatedFaqs)
+      try {
+        const res = await faqsApi.deleteFaq(faqs[index].id, chatflowid)
+        console.log('🚀 ~ FaqChatbot.jsx:99 ~ handleDeleteFaq ~ res:', res)
+        if (res.status === 200 && res.statusText === 'OK') {
+          enqueueSnackbar({
+            message: 'Đã xóa FAQ',
+            options: {
+              key: new Date().getTime() + Math.random(),
+              variant: 'success',
+              action: (key) => (
+                <Button style={{ color: 'white' }} onClick={() => closeSnackbar(key)}>
+                  <IconX />
+                </Button>
+              )
+            }
+          })
+          const updatedFaqs = faqs.filter((_, i) => i !== index)
+          setFaqs(updatedFaqs)
+        }
+      } catch (error) {
+        enqueueSnackbar({
+          message: 'Lỗi khi xóa FAQ',
+          options: {
+            key: new Date().getTime() + Math.random(),
+            variant: 'error',
+            persist: true,
+            action: (key) => (
+              <Button style={{ color: 'white' }} onClick={() => closeSnackbar(key)}>
+                <IconX />
+              </Button>
+            )
+          }
+        })
+      }
     }
   }
 

@@ -105,16 +105,23 @@ const getFaqById = async (id: string, req: any) => {
   }
 }
 
-const updateFaq = async (id: string, req: any) => {
+const updateFaq = async (req: any) => {
   try {
     const { question, answer, chatflowId } = req.body
+
+    const { id } = req.params
+    console.log('🚀 ~ index.ts:113 ~ updateFaq ~ id:', id)
+
+    if (!chatflowId || !id) {
+      throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, 'Error: faqsService.updateFaq - chatflowId or id not provided!')
+    }
 
     if (!question || !answer) {
       throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, 'Error: faqsService.updateFaq - question or answer not provided!')
     }
 
     const newDocument = {
-      _id: id,
+      id: id,
       question,
       answer,
       chatflowId,
@@ -128,9 +135,14 @@ const updateFaq = async (id: string, req: any) => {
   }
 }
 
-const deleteFaq = async (id: string, req: any) => {
+const deleteFaq = async (req: any) => {
   try {
-    const chatflowId = req.query?.chatflowId
+    const { chatflowId, id } = req.params
+
+    if (!chatflowId || !id) {
+      throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, 'Error: faqsService.deleteFaq - chatflowId or id not provided!')
+    }
+
     await validateUser(req)
     await deleteDocuments(`document_${chatflowId}`, [id])
   } catch (error) {
@@ -141,7 +153,6 @@ const deleteFaq = async (id: string, req: any) => {
 const deleteAllFaqs = async (req: any) => {
   try {
     const chatflowId = req.params?.chatflowId
-    console.log('🚀 ~ index.ts:144 ~ deleteAllFaqs ~ chatflowId:', chatflowId)
     await validateUser(req)
     await deleteAllDocuments(`document_${chatflowId}`)
     return { message: 'All FAQs deleted successfully' }

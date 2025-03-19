@@ -54,10 +54,7 @@ const getFaqById = async (req: Request, res: Response, next: NextFunction) => {
 
 const updateFaq = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!req.params?.id) {
-      throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: faqsController.updateFaq - id not provided!`)
-    }
-    const apiResponse = await faqsService.updateFaq(req.params.id, req)
+    const apiResponse = await faqsService.updateFaq(req)
     res.json(apiResponse)
   } catch (error) {
     next(error)
@@ -66,10 +63,7 @@ const updateFaq = async (req: Request, res: Response, next: NextFunction) => {
 
 const deleteFaq = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!req.params?.id) {
-      throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: faqsController.deleteFaq - id not provided!`)
-    }
-    const apiResponse = await faqsService.deleteFaq(req.params.id, req)
+    const apiResponse = await faqsService.deleteFaq(req)
     res.json(apiResponse)
   } catch (error) {
     next(error)

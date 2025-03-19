@@ -16,7 +16,7 @@ router.get('/search', faqsController.searchFaqs)
 router.put('/:id', faqsController.updateFaq)
 
 // DELETE
-router.delete('/:id', faqsController.deleteFaq)
+router.delete('/:id/:chatflowId', faqsController.deleteFaq)
 router.delete('/deleteall/:chatflowId', faqsController.deleteAllFaqs)
 router.delete('/deleteindex/:chatflowId', faqsController.deleteIndex)
 
