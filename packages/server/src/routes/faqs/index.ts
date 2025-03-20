@@ -10,7 +10,7 @@ router.post('/importfaqs', faqsController.importFaqs)
 // READ
 router.get('/', faqsController.getAllFaqs)
 router.get('/:id', faqsController.getFaqById)
-router.get('/search', faqsController.searchFaqs)
+router.get('/search/:chatflowId', faqsController.searchFaqs)
 
 // UPDATE
 router.put('/:id', faqsController.updateFaq)

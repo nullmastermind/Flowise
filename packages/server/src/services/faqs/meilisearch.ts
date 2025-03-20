@@ -42,7 +42,11 @@ export async function addDocuments(indexUid: string, documents: Record<string, a
 }
 
 export async function basicSearch(indexUid: string, query: string, searchParams?: SearchParams) {
-  return await client.index(indexUid).search(query, searchParams)
+  const params: SearchParams = {
+    ...searchParams,
+    limit: 5
+  }
+  return await client.index(indexUid).search(query, params)
 }
 
 export async function vectorSearch(indexUid: string, vector: number[], searchParams?: SearchParams) {

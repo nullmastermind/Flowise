@@ -163,8 +163,8 @@ const deleteAllFaqs = async (req: any) => {
 
 const searchFaqs = async (query: string, searchParams: any, req: any) => {
   try {
-    const chatflowId = req.query?.chatflowId
-    await validateUser(req)
+    const chatflowId = req.params?.chatflowId
+    // await validateUser(req)
     return await basicSearch(`document_${chatflowId}`, query, searchParams)
   } catch (error) {
     throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: faqsService.searchFaqs - ${getErrorMessage(error)}`)

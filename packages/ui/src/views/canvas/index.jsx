@@ -88,7 +88,7 @@ const Canvas = () => {
       ? true
       : user?.role === 'MASTER_ADMIN' || (user?.role === 'ADMIN' && user.groupname === chatflow?.user?.groupname)
   )
-  const { reactFlowInstance, setReactFlowInstance } = useContext(flowContext)
+  const { reactFlowInstance, setReactFlowInstance, isUndo, setIsUndo } = useContext(flowContext)
 
   // ==============================|| Snackbar ||============================== //
 
@@ -474,6 +474,7 @@ const Canvas = () => {
       setNodes(initialFlow.nodes || [])
       setEdges(initialFlow.edges || [])
       dispatch({ type: SET_CHATFLOW, chatflow })
+      resetInitUndo({ nodes: initialFlow.nodes || [], edges: initialFlow.edges || [] })
     } else if (getSpecificChatflowApi?.error) {
       errorFailed(`Failed to retrieve ${canvasTitle}: ${getSpecificChatflowApi.error.response.data.message}`)
       return navigate(isAgentCanvas ? '/agentflows' : '/')
@@ -561,6 +562,7 @@ const Canvas = () => {
       } else {
         setNodes([])
         setEdges([])
+        resetInitUndo({ nodes: [], edges: [] })
       }
       dispatch({
         type: SET_CHATFLOW,
@@ -635,7 +637,7 @@ const Canvas = () => {
         <Box sx={{ pt: '67px', height: '100vh', width: '100%' }}>
           <div className='reactflow-parent-wrapper'>
             <div className='reactflow-wrapper' ref={reactFlowWrapper}>
-              {Boolean(chatflow) && (
+              {Boolean(chatflow) && nodes && edges && (
                 <ReactFlow
                   nodes={nodes}
                   edges={edges}

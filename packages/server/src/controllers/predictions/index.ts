@@ -65,10 +65,6 @@ const createPrediction = async (req: Request, res: Response, next: NextFunction)
           res.flushHeaders()
 
           if (req.body.stored?.chatwoot?.conversation_id) {
-            // sseStreamer.streamStartEvent(chatId, '[]')
-            // sseStreamer.streamTokenEvent(chatId, 'hello world')
-            // sseStreamer.streamMetadataEvent(chatId, { chatId })
-
             await axios.post(
               `${CHATWOOT_BASE_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/conversations/${req.body.stored?.chatwoot?.conversation_id}/messages`,
               {
