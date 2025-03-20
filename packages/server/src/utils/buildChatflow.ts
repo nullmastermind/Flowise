@@ -567,7 +567,7 @@ const utilBuildAgentResponse = async (
   sseStreamer?: IServerSideEventStreamer,
   shouldStreamResponse?: boolean,
   uploadedFilesContent?: string,
-  chatFlowid?: string
+  chatflowid?: string
 ) => {
   const appServer = getRunningExpressApp()
   try {
@@ -585,7 +585,7 @@ const utilBuildAgentResponse = async (
     )
     if (streamResults) {
       const { finalResult, finalAction, sourceDocuments, artifacts, usedTools, agentReasoning } = streamResults
-      console.log('🚀 ~ buildChatflow.ts:591 ~ chatFlowId:', chatFlowid)
+      console.log('🚀 ~ buildChatflow.ts:591 ~ chatFlowId:', chatflowid)
 
       // if (chatFlowid === '2192b560-f3da-468d-80a4-a3aed97532be') {
       //   // Transfer the finalResult as a string to a .txt file and push it to S3
