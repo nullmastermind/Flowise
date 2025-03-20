@@ -80,7 +80,6 @@ const Canvas = () => {
 
   const { confirm } = useConfirm()
   const dispatch = useDispatch()
-  const [isBacked, setIsBacked] = useState(false)
   const canvas = useSelector((state) => state.canvas)
   const [canvasDataStore, setCanvasDataStore] = useState(canvas)
   const [chatflow, setChatflow] = useState(null)
@@ -89,7 +88,7 @@ const Canvas = () => {
       ? true
       : user?.role === 'MASTER_ADMIN' || (user?.role === 'ADMIN' && user.groupname === chatflow?.user?.groupname)
   )
-  const { reactFlowInstance, setReactFlowInstance, isUndo, setIsUndo } = useContext(flowContext)
+  const { reactFlowInstance, setReactFlowInstance } = useContext(flowContext)
 
   // ==============================|| Snackbar ||============================== //
 
@@ -441,7 +440,6 @@ const Canvas = () => {
 
   const setDirty = () => {
     dispatch({ type: SET_DIRTY })
-    setIsUndo(true)
   }
 
   const checkIfUpsertAvailable = (nodes, edges) => {
@@ -476,7 +474,6 @@ const Canvas = () => {
       setNodes(initialFlow.nodes || [])
       setEdges(initialFlow.edges || [])
       dispatch({ type: SET_CHATFLOW, chatflow })
-      resetInitUndo({ nodes: initialFlow.nodes || [], edges: initialFlow.edges || [] })
     } else if (getSpecificChatflowApi?.error) {
       errorFailed(`Failed to retrieve ${canvasTitle}: ${getSpecificChatflowApi.error.response.data.message}`)
       return navigate(isAgentCanvas ? '/agentflows' : '/')
@@ -564,7 +561,6 @@ const Canvas = () => {
       } else {
         setNodes([])
         setEdges([])
-        resetInitUndo({ nodes: [], edges: [] })
       }
       dispatch({
         type: SET_CHATFLOW,
