@@ -5,6 +5,7 @@ import { NodeFileStore } from 'langchain/stores/file/node'
 import { INode, INodeData, INodeParams } from '../../../src/Interface'
 import { getBaseClasses } from '../../../src/utils'
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
+import * as mammoth from 'mammoth'
 
 abstract class BaseFileStore extends Serializable {
   abstract readFile(path: string): Promise<string>
@@ -109,12 +110,20 @@ export class ReadFileTool extends StructuredTool {
             throw new Error('No content found in the file')
           }
 
-          // Convert the readable stream to a string
+          // Convert the readable stream to buffer
           const chunks: Uint8Array[] = []
           for await (const chunk of (response as any).Body) {
             chunks.push(chunk)
           }
-          return Buffer.concat(chunks).toString('utf-8')
+          const buffer = Buffer.concat(chunks)
+
+          // Check if file is docx and convert using mammoth if needed
+          if (path.toLowerCase().endsWith('.docx')) {
+            const result = await mammoth.extractRawText({ buffer })
+            return result.value
+          } else {
+            return buffer.toString('utf-8')
+          }
         } catch (s3Error) {
           console.error(`S3 Error reading file ${path}:`, s3Error)
           throw new Error(`Error reading file from S3: ${s3Error.message}`)
