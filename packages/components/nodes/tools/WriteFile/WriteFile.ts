@@ -45,7 +45,7 @@ class WriteFile_Tools implements INode {
       {
         label: 'Base Path',
         name: 'basePath',
-        placeholder: `C:\\Users\\User\\Desktop`,
+        placeholder: 'Path trên s3 nếu không dùng file_path tự gen',
         type: 'string',
         optional: true
       }
@@ -55,12 +55,13 @@ class WriteFile_Tools implements INode {
   async init(nodeData: INodeData): Promise<any> {
     const basePath = nodeData.inputs?.basePath as string
     const store = basePath ? new NodeFileStore(basePath) : new NodeFileStore()
-    return new WriteFileTool({ store })
+    return new WriteFileTool({ store, basePath })
   }
 }
 
 interface WriteFileParams extends ToolParams {
   store: BaseFileStore
+  basePath?: string
 }
 
 /**
@@ -82,10 +83,11 @@ export class WriteFileTool extends StructuredTool {
   description = 'Write file from disk'
 
   store: BaseFileStore
+  basePath: string
 
-  constructor({ store, ...rest }: WriteFileParams) {
+  constructor({ store, basePath, ...rest }: WriteFileParams) {
     super(rest)
-
+    this.basePath = basePath || ''
     this.store = store
   }
 
@@ -93,7 +95,7 @@ export class WriteFileTool extends StructuredTool {
     const fileContent = Buffer.from(text, 'utf-8')
     const uploadParams = {
       Bucket: BUCKET_NAME,
-      Key: `BKTTW/insights/${file_path}`,
+      Key: this.basePath || file_path,
       Body: fileContent
     }
 
