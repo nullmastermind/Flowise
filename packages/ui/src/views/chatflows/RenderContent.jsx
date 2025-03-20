@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
-import { Box, FormControl, FormControlLabel, Radio, RadioGroup, Skeleton, Stack } from '@mui/material'
+import { Box, FormControl, FormControlLabel, Checkbox, Skeleton, Stack } from '@mui/material'
 import { FlowListTable } from '@/ui-component/table/FlowListTable'
 import ItemCard from '@/ui-component/cards/ItemCard'
 import WorkflowEmptySVG from '@/assets/images/workflow_empty.svg'
@@ -25,7 +25,7 @@ const RenderContent = ({
   setCurrentPage
 }) => {
   const [data, setData] = useState(null)
-  const [filter, setFilter] = useState(isUser ? 'publish' : 'all')
+  const [filter, setFilter] = useState({ publish: true, unpublish: true })
 
   const handleOnchangePage = async (_, page) => {
     await setCurrentPage(page)
@@ -33,14 +33,16 @@ const RenderContent = ({
   }
 
   useEffect(() => {
-    if (dataInput && filter === 'publish') {
-      setData(dataInput.filter((item) => item.isPublic))
-    }
-    if (dataInput && filter === 'unpublish') {
-      setData(dataInput.filter((item) => !item.isPublic))
-    }
-    if (dataInput && filter === 'all') {
+    if (!dataInput) return
+
+    if (filter.publish && filter.unpublish) {
       setData(dataInput)
+    } else if (filter.publish) {
+      setData(dataInput.filter((item) => item.isPublic))
+    } else if (filter.unpublish) {
+      setData(dataInput.filter((item) => !item.isPublic))
+    } else {
+      setData([])
     }
   }, [dataInput, filter])
 
@@ -52,18 +54,15 @@ const RenderContent = ({
         </div>
       )}
       {isAdmin && (
-        <FormControl className='absolute top-[-45px] left-0'>
-          <RadioGroup
-            onChange={(e) => setFilter(e.target.value)}
-            aria-labelledby='demo-radio-buttons-group-label'
-            defaultValue='all'
-            name='radio-buttons-group'
-            row
-          >
-            <FormControlLabel value='all' control={<Radio />} label='Tất cả' />
-            <FormControlLabel value='publish' control={<Radio />} label='Công bố' />
-            <FormControlLabel value='unpublish' control={<Radio />} label='Chưa công bố' />
-          </RadioGroup>
+        <FormControl className='absolute top-[-45px] left-0' style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
+          <FormControlLabel
+            control={<Checkbox checked={filter.publish} onChange={(e) => setFilter({ ...filter, publish: e.target.checked })} />}
+            label='Công bố'
+          />
+          <FormControlLabel
+            control={<Checkbox checked={filter.unpublish} onChange={(e) => setFilter({ ...filter, unpublish: e.target.checked })} />}
+            label='Không công bố'
+          />
         </FormControl>
       )}
       {view === 'card' ? (
@@ -83,7 +82,6 @@ const RenderContent = ({
           )
         )
       ) : (
-        // data?.length > 0 && (
         <FlowListTable
           data={data}
           images={images}
@@ -93,7 +91,6 @@ const RenderContent = ({
           setError={setError}
           isAgentCanvas={isAgentCanvas}
         />
-        // )
       )}
       {data?.length === 0 && (
         <Stack sx={{ alignItems: 'center', justifyContent: 'center' }} flexDirection='column'>
