@@ -1383,7 +1383,7 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
     if (item?.mime?.startsWith('image/')) {
       let src = ''
 
-      if (item?.data && Object.keys(item?.file).length !== 0) {
+      if (item?.data && item?.file && Object.keys(item?.file).length !== 0) {
         src = URL?.createObjectURL(item?.file)
       } else {
         src = `${baseURL}/api/v1/get-upload-file?chatflowId=${chatflowid}&chatId=${chatId}&fileName=${item.name}`
@@ -1541,9 +1541,8 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
       <div ref={ps} className={`${isDialog ? 'cloud-dialog' : 'cloud'}`}>
         <div id='messagelist' className={'messagelist'}>
           {messages &&
-            messages.map((message, index) => {
+            messages?.map((message, index) => {
               return (
-                // The latest message sent by the user will be animated while waiting for a response
                 <Box
                   sx={{
                     background: message.type === 'apiMessage' || message.type === 'leadCaptureMessage' ? theme.palette.asyncSelect.main : ''
@@ -1573,7 +1572,7 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
                       width: '100%'
                     }}
                   >
-                    {message.fileUploads && message.fileUploads.length > 0 && (
+                    {message?.fileUploads && message?.fileUploads.length > 0 && (
                       <div
                         style={{
                           display: 'flex',
@@ -1583,7 +1582,7 @@ export const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, preview
                           gap: '8px'
                         }}
                       >
-                        {message.fileUploads.map((item, index) => {
+                        {message?.fileUploads?.map((item, index) => {
                           return <>{renderFileUploads(item, index)}</>
                         })}
                       </div>

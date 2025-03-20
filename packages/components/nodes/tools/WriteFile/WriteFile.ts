@@ -4,11 +4,22 @@ import { Serializable } from '@langchain/core/load/serializable'
 import { NodeFileStore } from 'langchain/stores/file/node'
 import { INode, INodeData, INodeParams } from '../../../src/Interface'
 import { getBaseClasses } from '../../../src/utils'
+import { PutObjectCommand, S3Client, type _Object } from '@aws-sdk/client-s3'
 
 abstract class BaseFileStore extends Serializable {
   abstract readFile(path: string): Promise<string>
   abstract writeFile(path: string, contents: string): Promise<void>
 }
+
+export const BUCKET_NAME = process.env.S3_STORAGE_BUCKET_NAME!
+
+export const s3Client = new S3Client({
+  credentials: {
+    accessKeyId: process.env.S3_STORAGE_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.S3_STORAGE_SECRET_ACCESS_KEY!
+  },
+  region: process.env.S3_STORAGE_REGION!
+})
 
 class WriteFile_Tools implements INode {
   label: string
@@ -34,7 +45,7 @@ class WriteFile_Tools implements INode {
       {
         label: 'Base Path',
         name: 'basePath',
-        placeholder: `C:\\Users\\User\\Desktop`,
+        placeholder: 'Path trên s3 nếu không dùng file_path tự gen',
         type: 'string',
         optional: true
       }
@@ -44,12 +55,13 @@ class WriteFile_Tools implements INode {
   async init(nodeData: INodeData): Promise<any> {
     const basePath = nodeData.inputs?.basePath as string
     const store = basePath ? new NodeFileStore(basePath) : new NodeFileStore()
-    return new WriteFileTool({ store })
+    return new WriteFileTool({ store, basePath })
   }
 }
 
 interface WriteFileParams extends ToolParams {
   store: BaseFileStore
+  basePath?: string
 }
 
 /**
@@ -71,15 +83,25 @@ export class WriteFileTool extends StructuredTool {
   description = 'Write file from disk'
 
   store: BaseFileStore
+  basePath: string
 
-  constructor({ store, ...rest }: WriteFileParams) {
+  constructor({ store, basePath, ...rest }: WriteFileParams) {
     super(rest)
-
+    this.basePath = basePath || ''
     this.store = store
   }
 
   async _call({ file_path, text }: z.infer<typeof this.schema>) {
-    await this.store.writeFile(file_path, text)
+    const fileContent = Buffer.from(text, 'utf-8')
+    const uploadParams = {
+      Bucket: BUCKET_NAME,
+      Key: this.basePath || file_path,
+      Body: fileContent
+    }
+
+    await s3Client.send(new PutObjectCommand(uploadParams))
+
+    // await this.store.writeFile(file_path, text)
     return 'File written to successfully.'
   }
 }
