@@ -81,6 +81,7 @@ const Canvas = () => {
   const { confirm } = useConfirm()
   const dispatch = useDispatch()
   const canvas = useSelector((state) => state.canvas)
+  const [isBacked, setIsBacked] = useState(false)
   const [canvasDataStore, setCanvasDataStore] = useState(canvas)
   const [chatflow, setChatflow] = useState(null)
   const [isAdminPage, setIsAdminPage] = useState(
@@ -108,6 +109,8 @@ const Canvas = () => {
   const reactFlowWrapper = useRef(null)
 
   const { value, setValue, backLength, forwardLength, back, forward, reset: resetInitUndo } = useHistoryTravel(nodes ?? [], 20)
+
+  console.log('🚀 ~ index.jsx:102 ~ nodes:', { nodes, edges })
 
   useEffect(() => {
     if (reactFlowInstance && isUndo) {
@@ -440,6 +443,7 @@ const Canvas = () => {
 
   const setDirty = () => {
     dispatch({ type: SET_DIRTY })
+    setIsUndo(true)
   }
 
   const checkIfUpsertAvailable = (nodes, edges) => {
