@@ -45,7 +45,10 @@ const getFaqById = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.params?.id) {
       throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: faqsController.getFaqById - id not provided!`)
     }
-    const apiResponse = await faqsService.getFaqById(req.params.id, req)
+
+    const id = req.params.id
+    const chatflowId = req.params?.chatflowId as string
+    const apiResponse = await faqsService.getFaqById(id, chatflowId)
     res.json(apiResponse)
   } catch (error) {
     next(error)
@@ -82,6 +85,7 @@ const deleteAllFaqs = async (req: Request, res: Response, next: NextFunction) =>
 const searchFaqs = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const query = req.query.query as string
+    console.log('🚀 ~ index.ts:88 ~ searchFaqs ~ query:', query)
     if (!query) {
       throw new InternalFlowiseError(
         StatusCodes.PRECONDITION_FAILED,

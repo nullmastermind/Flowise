@@ -47,6 +47,10 @@ const createPrediction = async (req: Request, res: Response, next: NextFunction)
       }
     }
     if (isDomainAllowed) {
+      if (req.body.faqId) {
+        const apiResponse = await predictionsServices.buildFaq(req)
+        return res.json(apiResponse)
+      }
       const streamable = await chatflowsService.checkIfChatflowIsValidForStreaming(req.params.id)
       const isStreamingRequested = req.body.streaming === 'true' || req.body.streaming === true
       if (streamable?.isStreaming && isStreamingRequested) {

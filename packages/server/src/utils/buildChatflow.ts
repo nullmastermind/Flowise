@@ -47,7 +47,7 @@ import {
 } from '../utils'
 import { databaseEntities } from '.'
 import { v4 as uuidv4 } from 'uuid'
-import { omit } from 'lodash'
+import { omit, cloneDeep } from 'lodash'
 import * as fs from 'fs'
 import logger from './logger'
 import { utilAddChatMessage } from './addChatMesage'
@@ -57,17 +57,10 @@ import { ChatMessage } from '../database/entities/ChatMessage'
 import { IAction } from 'flowise-components'
 import { FLOWISE_METRIC_COUNTERS, FLOWISE_COUNTER_STATUS } from '../Interface.Metrics'
 import { validateChatflowAPIKey } from './validateKey'
-import { PutObjectCommand, S3Client, type _Object } from '@aws-sdk/client-s3'
-
-export const BUCKET_NAME = process.env.S3_STORAGE_BUCKET_NAME || 'unknown'
-
-export const s3Client = new S3Client({
-  credentials: {
-    accessKeyId: process.env.S3_STORAGE_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.S3_STORAGE_SECRET_ACCESS_KEY!
-  },
-  region: process.env.S3_STORAGE_REGION || 'us-east-1'
-})
+import { UpsertHistory } from '../database/entities/UpsertHistory'
+import { faqsService } from '../services/faqs'
+import { RunnableConfig } from '@langchain/core/runnables'
+import { Checkpoint, CheckpointMetadata } from '@langchain/langgraph'
 
 /**
  * Build Chatflow
@@ -250,8 +243,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
         baseURL,
         appServer.sseStreamer,
         true,
-        uploadedFilesContent,
-        chatflowid
+        uploadedFilesContent
       )
     }
 
@@ -566,8 +558,7 @@ const utilBuildAgentResponse = async (
   baseURL?: string,
   sseStreamer?: IServerSideEventStreamer,
   shouldStreamResponse?: boolean,
-  uploadedFilesContent?: string,
-  chatflowid?: string
+  uploadedFilesContent?: string
 ) => {
   const appServer = getRunningExpressApp()
   try {
@@ -585,20 +576,6 @@ const utilBuildAgentResponse = async (
     )
     if (streamResults) {
       const { finalResult, finalAction, sourceDocuments, artifacts, usedTools, agentReasoning } = streamResults
-      console.log('🚀 ~ buildChatflow.ts:591 ~ chatFlowId:', chatflowid)
-
-      // if (chatFlowid === '2192b560-f3da-468d-80a4-a3aed97532be') {
-      //   // Transfer the finalResult as a string to a .txt file and push it to S3
-      //   const fileContent = Buffer.from(finalResult, 'utf-8')
-      //   const uploadParams = {
-      //     Bucket: BUCKET_NAME,
-      //     Key: `BKTTW/insights/${chatId}_${apiMessageId}.txt`,
-      //     Body: fileContent
-      //   }
-
-      //   await s3Client.send(new PutObjectCommand(uploadParams))
-      // }
-
       const userMessage: Omit<IChatMessage, 'id'> = {
         role: 'userMessage',
         content: incomingInput.question,
@@ -705,5 +682,333 @@ const utilBuildAgentResponse = async (
       { status: FLOWISE_COUNTER_STATUS.FAILURE }
     )
     throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, getErrorMessage(e))
+  }
+}
+
+/**
+ * Build FAQ response
+ * @param {string} faqId
+ * @param {string} chatflowId
+ * @param {string} chatId
+ */
+export const utilBuildFaq = async (faqId: string, chatflowId: string, chatId?: string): Promise<any> => {
+  const appServer = getRunningExpressApp()
+  try {
+    // Generate chat ID if not provided
+    if (!chatId) chatId = uuidv4()
+
+    // Get FAQ using the service
+    const faqData = await faqsService.getFaqById(faqId, chatflowId)
+    if (!faqData) {
+      throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `FAQ ${faqId} not found`)
+    }
+
+    // Get chatflow to associate with the FAQ
+    const chatflow = await appServer.AppDataSource.getRepository(ChatFlow).findOneBy({
+      id: chatflowId
+    })
+
+    if (!chatflow) {
+      throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
+    }
+
+    // Parse flow data
+    const flowData = chatflow.flowData
+    const parsedFlowData: IReactFlowObject = JSON.parse(flowData)
+    const nodes = parsedFlowData.nodes
+    const edges = parsedFlowData.edges
+
+    // Find memory node and get proper sessionId
+    const memoryNode = findMemoryNode(nodes, edges)
+    const memoryType = memoryNode?.data?.label
+
+    // Extract question and answer
+    const { question, answer } = faqData
+    const apiMessageId = uuidv4()
+    const userMessageId = uuidv4()
+    const userMessageDateTime = new Date()
+
+    // Create a proper IncomingInput with the FAQ question
+    const incomingInput: IncomingInput = {
+      question,
+      chatId
+    }
+
+    // Get sessionId using the same logic as in regular chatflow
+    const sessionId = getMemorySessionId(memoryNode, incomingInput, chatId, true)
+
+    // FIRST: Store messages in database for retrieval
+    const userMessage: Omit<IChatMessage, 'id'> = {
+      role: 'userMessage',
+      content: question,
+      chatflowid: chatflowId,
+      chatType: ChatType.INTERNAL,
+      chatId,
+      memoryType,
+      sessionId,
+      createdDate: userMessageDateTime
+    }
+    await utilAddChatMessage(userMessage)
+
+    // Add the API message (answer)
+    const apiMessage: Omit<IChatMessage, 'createdDate'> = {
+      id: apiMessageId,
+      role: 'apiMessage',
+      content: answer,
+      chatflowid: chatflowId,
+      chatType: ChatType.INTERNAL,
+      chatId,
+      memoryType,
+      sessionId
+    }
+    const chatMessage = await utilAddChatMessage(apiMessage)
+
+    // SPECIAL HANDLING FOR AGENT MEMORY
+    if (memoryNode && memoryNode.data.name === 'agentMemory') {
+      try {
+        // Load and initialize the memory component directly
+        const nodeInstanceFilePath = appServer.nodesPool.componentNodes[memoryNode.data.name].filePath as string
+        const nodeModule = await import(nodeInstanceFilePath)
+        const memoryInstance = new nodeModule.nodeClass()
+
+        // Create a deep copy of the memory node data to avoid mutations
+        const memoryNodeData = cloneDeep(memoryNode.data)
+
+        // If sessionId isn't in the inputs, add it
+        if (!memoryNodeData.inputs) memoryNodeData.inputs = {}
+        memoryNodeData.inputs.sessionId = sessionId
+
+        // Get database type
+        const dbType = memoryNodeData.inputs.databaseType || 'unknown'
+        logger.debug(`[server]: Processing FAQ for ${dbType} memory, session ${sessionId}`)
+
+        // Initialize with proper configuration
+        const initializedMemory = await memoryInstance.init(memoryNodeData, '', {
+          chatId,
+          chatflowid: chatflowId,
+          sessionId,
+          appDataSource: appServer.AppDataSource,
+          databaseEntities
+        })
+
+        // Format messages in LangChain format
+        const humanMessage = {
+          lc: 1,
+          type: 'constructor',
+          id: ['langchain_core', 'messages', 'HumanMessage'],
+          kwargs: {
+            content: question,
+            additional_kwargs: {},
+            response_metadata: {}
+          }
+        }
+
+        const aiMessage = {
+          lc: 1,
+          type: 'constructor',
+          id: ['langchain_core', 'messages', 'AIMessage'],
+          kwargs: {
+            content: answer,
+            additional_kwargs: {},
+            tool_calls: [],
+            invalid_tool_calls: [],
+            response_metadata: {}
+          }
+        }
+
+        // Create arrays of properly formatted messages
+        const formattedMessages = [humanMessage, aiMessage]
+
+        let success = false
+
+        // PostgreSQL-specific handling
+        if (dbType === 'postgres' && typeof initializedMemory.put === 'function') {
+          try {
+            // Generate unique IDs
+            const checkpointId = `faq_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+            const checkpointTimestamp = new Date().toISOString()
+            const nextMessageVersion = 1
+
+            // Create properly structured checkpoint matching the expected format
+            const checkpoint = {
+              v: 1,
+              id: checkpointId,
+              ts: checkpointTimestamp,
+              channel_values: {
+                messages: formattedMessages,
+                sub_queries: [],
+                current_date: new Date().toLocaleString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: 'numeric',
+                  timeZoneName: 'short'
+                }),
+                name: '',
+                phone_number: '',
+                human_support: 'false',
+                __start__: {
+                  messages: [humanMessage]
+                }
+              },
+              channel_versions: {
+                __start__: nextMessageVersion,
+                messages: nextMessageVersion,
+                sub_queries: nextMessageVersion,
+                current_date: nextMessageVersion,
+                name: nextMessageVersion,
+                phone_number: nextMessageVersion,
+                human_support: nextMessageVersion
+              },
+              versions_seen: {
+                __start__: {
+                  __start__: nextMessageVersion - 1
+                }
+              }
+            }
+
+            // Create proper metadata structure
+            const metadata = {
+              source: 'faq',
+              step: nextMessageVersion,
+              writes: {
+                __start__: {
+                  messages: [humanMessage]
+                }
+              },
+              sessionId,
+              chatflowId: chatflowId,
+              timestamp: Date.now()
+            }
+
+            // Call put with properly structured parameters
+            await initializedMemory.put(
+              {
+                configurable: {
+                  thread_id: sessionId,
+                  checkpoint_id: `parent_${checkpointId}`
+                }
+              },
+              checkpoint,
+              metadata
+            )
+
+            success = true
+            logger.debug(`[server]: Successfully stored FAQ in PostgreSQL using proper checkpoint structure`)
+          } catch (error) {
+            logger.error(`[server]: Error storing FAQ in PostgreSQL: ${getErrorMessage(error)}`)
+            console.error('Full error:', error) // More detailed logging
+          }
+        }
+        // For other memory types, use writeToHistory with simple formatted messages
+        else if (typeof initializedMemory.writeToHistory === 'function') {
+          try {
+            // Original simple message format for non-PostgreSQL memory
+            const simpleMessages = [
+              {
+                id: userMessageId,
+                role: 'human',
+                type: 'human',
+                content: question,
+                data: {
+                  content: question,
+                  additional_kwargs: {},
+                  example: false
+                }
+              },
+              {
+                id: apiMessageId,
+                role: 'ai',
+                type: 'ai',
+                content: answer,
+                data: {
+                  content: answer,
+                  additional_kwargs: {},
+                  example: false
+                }
+              }
+            ]
+
+            for (const message of simpleMessages) {
+              await initializedMemory.writeToHistory(message)
+            }
+            success = true
+            logger.debug(`[server]: Stored FAQ using writeToHistory method`)
+          } catch (error) {
+            logger.error(`[server]: Error storing FAQ with writeToHistory: ${getErrorMessage(error)}`)
+          }
+        }
+
+        // Verify storage success with detailed logging
+        if (success) {
+          try {
+            const verificationHistory = await getSessionChatHistory(
+              chatflowId,
+              sessionId,
+              memoryNode,
+              appServer.nodesPool.componentNodes,
+              appServer.AppDataSource,
+              databaseEntities,
+              logger
+            )
+
+            if (verificationHistory && verificationHistory.length > 0) {
+              logger.debug(`[server]: FAQ storage verification successful - found ${verificationHistory.length} messages in memory`)
+              logger.debug(`[server]: Verification first message: ${JSON.stringify(verificationHistory[0]).substring(0, 100)}...`)
+            } else {
+              logger.warn(
+                `[server]: FAQ storage verification warning - no messages found after storage attempt for sessionId: ${sessionId}`
+              )
+            }
+          } catch (e) {
+            logger.error(`[server]: Error verifying FAQ storage: ${getErrorMessage(e)}`)
+          }
+        }
+      } catch (error) {
+        logger.error(`[server]: Error saving FAQ to memory: ${getErrorMessage(error)}`)
+        console.error('Full error:', error) // More detailed logging
+      }
+    }
+
+    // Check if the chatflow has vector storage components
+    const upsertNode = nodes.find((node) =>
+      ['vectorStoreUpsert', 'pineconeUpsert', 'qdrantUpsert', 'chromaUpsert'].includes(node.data.name)
+    )
+
+    if (upsertNode) {
+      const upsertHistoryRepository = appServer.AppDataSource.getRepository(UpsertHistory)
+      await upsertHistoryRepository.save({
+        chatflowid: chatflowId,
+        chatId,
+        source: 'FAQ',
+        sourceId: faqId,
+        content: `Q: ${question}\nA: ${answer}`
+      })
+    }
+
+    // Track metrics
+    appServer.metricsProvider?.incrementCounter(FLOWISE_METRIC_COUNTERS.CHATFLOW_PREDICTION_INTERNAL, {
+      status: FLOWISE_COUNTER_STATUS.SUCCESS
+    })
+
+    logger.debug(`[server]: FAQ ${faqId} processed for chatflow ${chatflowId}`)
+
+    // Return in same format as chat responses for consistency
+    return {
+      text: answer,
+      question: question,
+      chatId: chatId,
+      chatMessageId: chatMessage?.id,
+      sessionId: sessionId,
+      memoryType: memoryType
+    }
+  } catch (error) {
+    appServer.metricsProvider?.incrementCounter(FLOWISE_METRIC_COUNTERS.CHATFLOW_PREDICTION_INTERNAL, {
+      status: FLOWISE_COUNTER_STATUS.FAILURE
+    })
+    logger.error('[server]: Error processing FAQ:', error)
+    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: utilBuildFaq - ${getErrorMessage(error)}`)
   }
 }

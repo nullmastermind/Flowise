@@ -2,7 +2,7 @@ import client from './client'
 
 const getAllFaqs = (chatflowId) => client.get(`/faq?chatflowId=${chatflowId}`)
 
-const getFaqById = (id, chatflowId) => client.get(`/faq/${id}?chatflowId=${chatflowId}`)
+// const getFaqById = (id, chatflowId) => client.get(`/faq/${id}?chatflowId=${chatflowId}`)
 
 const searchFaqs = (chatflowId) => client.get(`/faq/search?chatflowId=${chatflowId}`)
 
@@ -20,7 +20,7 @@ const deleteIndex = (chatflowId) => client.delete(`/faq/deleteindex/${chatflowId
 
 export default {
   getAllFaqs,
-  getFaqById,
+  // getFaqById,
   searchFaqs,
   saveFaq,
   importFaqs,

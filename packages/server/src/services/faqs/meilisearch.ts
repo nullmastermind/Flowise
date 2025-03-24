@@ -44,7 +44,12 @@ export async function addDocuments(indexUid: string, documents: Record<string, a
 export async function basicSearch(indexUid: string, query: string, searchParams?: SearchParams) {
   const params: SearchParams = {
     ...searchParams,
-    limit: 5
+    limit: 5,
+    showRankingScore: true,
+    attributesToSearchOn: ['question', 'answer'], // Focus search on these fields
+    matchingStrategy: 'all', // Require all words to match
+    attributesToCrop: ['answer'], // Crop for preview
+    cropLength: 30
   }
   return await client.index(indexUid).search(query, params)
 }
@@ -57,7 +62,7 @@ export async function vectorSearch(indexUid: string, vector: number[], searchPar
 }
 
 export async function updateSettings(indexUid: string, settings: Record<string, any>) {
-  return await client.index(indexUid).updateEmbedders(settings)
+  return await client.index(indexUid).updateSettings(settings)
 }
 
 export async function getAllDocuments(indexUid: string) {

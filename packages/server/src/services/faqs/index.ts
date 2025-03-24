@@ -95,11 +95,10 @@ const getAllFaqs = async (req: any) => {
   }
 }
 
-const getFaqById = async (id: string, req: any) => {
+const getFaqById = async (id: string, chatflowId: string) => {
+  console.log('🚀 ~ index.ts:99 ~ getFaqById ~ chatflowId:', chatflowId)
   try {
-    const chatflowId = req.query?.chatflowId
-    await validateUser(req)
-    await getDocumentById(`document_${chatflowId}`, id)
+    return await getDocumentById(`document_${chatflowId}`, id)
   } catch (error) {
     throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: faqsService.getFaqById - ${getErrorMessage(error)}`)
   }
@@ -164,6 +163,7 @@ const deleteAllFaqs = async (req: any) => {
 const searchFaqs = async (query: string, searchParams: any, req: any) => {
   try {
     const chatflowId = req.params?.chatflowId
+    console.log('🚀 ~ index.ts:165 ~ searchFaqs ~ chatflowId:', chatflowId)
     // await validateUser(req)
     return await basicSearch(`document_${chatflowId}`, query, searchParams)
   } catch (error) {
