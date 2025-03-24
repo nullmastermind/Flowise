@@ -587,17 +587,28 @@ const utilBuildAgentResponse = async (
       const { finalResult, finalAction, sourceDocuments, artifacts, usedTools, agentReasoning } = streamResults
       console.log('🚀 ~ buildChatflow.ts:591 ~ chatFlowId:', chatflowid)
 
-      // if (chatFlowid === '2192b560-f3da-468d-80a4-a3aed97532be') {
-      //   // Transfer the finalResult as a string to a .txt file and push it to S3
-      //   const fileContent = Buffer.from(finalResult, 'utf-8')
-      //   const uploadParams = {
-      //     Bucket: BUCKET_NAME,
-      //     Key: `BKTTW/insights/${chatId}_${apiMessageId}.txt`,
-      //     Body: fileContent
-      //   }
+      if (chatflowid === '2e546f0e-bf1e-491c-ac6c-862cd0af409d') {
+        // Transfer the finalResult as a string to a .txt file and push it to S3
+        const time = new Date()
+          .toLocaleString('en-US', {
+            hour12: false,
+            minute: '2-digit',
+            hour: '2-digit',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          })
+          .replace(/[/:,\s]/g, '')
+        const fileContent = Buffer.from(finalResult, 'utf-8')
+        const uploadParams = {
+          Bucket: BUCKET_NAME,
+          Key: `BKTTW/reports/report_${time}.txt`,
+          Body: fileContent
+        }
+        console.log('🚀 ~ buildChatflow.ts:608 ~ uploadParams:', uploadParams)
 
-      //   await s3Client.send(new PutObjectCommand(uploadParams))
-      // }
+        await s3Client.send(new PutObjectCommand(uploadParams))
+      }
 
       const userMessage: Omit<IChatMessage, 'id'> = {
         role: 'userMessage',

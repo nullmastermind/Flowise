@@ -4,7 +4,7 @@ import { Serializable } from '@langchain/core/load/serializable'
 import { NodeFileStore } from 'langchain/stores/file/node'
 import { INode, INodeData, INodeParams } from '../../../src/Interface'
 import { getBaseClasses } from '../../../src/utils'
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3'
 import * as mammoth from 'mammoth'
 
 abstract class BaseFileStore extends Serializable {
@@ -101,6 +101,70 @@ export class ReadFileTool extends StructuredTool {
         const getObjectParams = {
           Bucket: BUCKET_NAME,
           Key: path
+        }
+
+        const isFolder = path.endsWith('/')
+
+        if (isFolder) {
+          try {
+            // List objects in the folder
+            const listCommand = new ListObjectsV2Command({
+              Bucket: BUCKET_NAME,
+              Prefix: path
+            })
+
+            const listResponse = await s3Client.send(listCommand)
+            if (!listResponse.Contents || listResponse.Contents.length === 0) {
+              return 'The folder is empty'
+            }
+
+            // Filter for .txt and .docx files
+            const fileKeys = listResponse.Contents.filter((item) => item.Key && !item.Key.endsWith('/'))
+              .filter((item) => item.Key?.toLowerCase().endsWith('.txt') || item.Key?.toLowerCase().endsWith('.docx'))
+              .map((item) => item.Key as string)
+
+            if (fileKeys.length === 0) {
+              return 'No text or docx files found in the folder'
+            }
+
+            // Read and concatenate all files
+            let allContent = []
+            for (const fileKey of fileKeys) {
+              const getObjectParams = {
+                Bucket: BUCKET_NAME,
+                Key: fileKey
+              }
+
+              const command = new GetObjectCommand(getObjectParams)
+              const response = await s3Client.send(command)
+              if (!response.Body) continue
+
+              // Convert the readable stream to buffer
+              const chunks: Uint8Array[] = []
+              for await (const chunk of (response as any).Body) {
+                chunks.push(chunk)
+              }
+              const buffer = Buffer.concat(chunks)
+
+              // Add file content based on type
+              const fileName = fileKey.split('/').pop() || fileKey
+              let content = ''
+
+              if (fileKey.toLowerCase().endsWith('.docx')) {
+                const result = await mammoth.extractRawText({ buffer })
+                content = result.value
+              } else {
+                content = buffer.toString('utf-8')
+              }
+
+              allContent.push(`[File: ${fileName}]\n${content}\n\n`)
+            }
+
+            return allContent.join('')
+          } catch (folderError) {
+            console.error(`Error reading folder ${path}:`, folderError)
+            throw new Error(`Error reading folder from S3: ${folderError.message}`)
+          }
         }
 
         try {
