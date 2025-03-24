@@ -40,7 +40,7 @@ class ReadFile_Tools implements INode {
     this.type = 'ReadFile'
     this.icon = 'readfile.svg'
     this.category = 'Tools'
-    this.description = 'Read file from disk'
+    this.description = 'Read file or directory from disk'
     this.baseClasses = [this.type, 'Tool', ...getBaseClasses(ReadFileTool)]
     this.inputs = [
       {
@@ -94,8 +94,14 @@ export class ReadFileTool extends StructuredTool {
 
   async _call({ file_path }: z.infer<typeof this.schema>) {
     try {
-      const path = this.basePath || file_path
-      console.log('🚀 ~ ReadFile.ts:98 ~ ReadFileTool ~ _call ~ path:', path)
+      let path = this.basePath || file_path
+
+      console.log('🚀 ~ ReadFile.ts:99 ~ ReadFileTool ~ _call ~ path:', path)
+
+      if (path.startsWith('BKTTW/units/unit_insights/')) {
+        path = 'BKTTW/units/unit_insights/'
+      }
+      console.log('🚀 ~ ReadFile.ts:102 ~ ReadFileTool ~ _call ~ path:', path)
 
       // If using S3 storage
       if (s3Client && BUCKET_NAME) {
