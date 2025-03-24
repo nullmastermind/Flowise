@@ -95,14 +95,10 @@ export class ReadFileTool extends StructuredTool {
   async _call({ file_path }: z.infer<typeof this.schema>) {
     try {
       const path = this.basePath || file_path
+      console.log('🚀 ~ ReadFile.ts:98 ~ ReadFileTool ~ _call ~ path:', path)
 
       // If using S3 storage
       if (s3Client && BUCKET_NAME) {
-        const getObjectParams = {
-          Bucket: BUCKET_NAME,
-          Key: path
-        }
-
         const isFolder = path.endsWith('/')
 
         if (isFolder) {
@@ -168,6 +164,10 @@ export class ReadFileTool extends StructuredTool {
         }
 
         try {
+          const getObjectParams = {
+            Bucket: BUCKET_NAME,
+            Key: path
+          }
           const command = new GetObjectCommand(getObjectParams)
           const response = await s3Client.send(command)
           if (!response.Body) {
