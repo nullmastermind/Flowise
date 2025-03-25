@@ -19,12 +19,15 @@ export class PostgresSaver extends BaseCheckpointSaver implements MemoryMethods 
 
   tableName = 'checkpoints'
 
+  numberOfMessages: number | undefined = -1
+
   constructor(config: SaverOptions, serde?: SerializerProtocol<Checkpoint>) {
     super(serde)
     this.config = config
     const { datasourceOptions, threadId } = config
     this.threadId = threadId
     this.datasource = new DataSource(datasourceOptions)
+    this.numberOfMessages = config.numberOfMessages
   }
 
   private async setup(): Promise<void> {
@@ -210,14 +213,13 @@ CREATE TABLE IF NOT EXISTS ${this.tableName} (
     returnBaseMessages = false,
     prependMessages?: IMessage[]
   ): Promise<IMessage[] | BaseMessage[]> {
-    const startTime = performance.now()
-
     if (!overrideSessionId) {
-      console.log('PostgresSaver get chat messages:', performance.now() - startTime)
       return []
     }
 
-    const chatMessage = await this.config.appDataSource.getRepository(this.config.databaseEntities['ChatMessage']).find({
+    const repository = this.config.appDataSource.getRepository(this.config.databaseEntities['ChatMessage'])
+
+    let findOptions: any = {
       where: {
         sessionId: overrideSessionId,
         chatflowid: this.config.chatflowid
@@ -225,10 +227,25 @@ CREATE TABLE IF NOT EXISTS ${this.tableName} (
       order: {
         createdDate: 'ASC'
       }
-    })
+    }
+
+    if (this.numberOfMessages && this.numberOfMessages > 0) {
+      // Get total count of messages
+      const totalCount = await repository.count(findOptions)
+
+      // Calculate offset to get the most recent N messages
+      findOptions.skip = Math.max(0, totalCount - this.numberOfMessages)
+      findOptions.take = Number(this.numberOfMessages)
+    }
+
+    const chatMessage = await repository.find(findOptions)
 
     if (prependMessages?.length) {
       chatMessage.unshift(...prependMessages)
+
+      if (this.numberOfMessages && this.numberOfMessages > 0) {
+        chatMessage.splice(this.numberOfMessages)
+      }
     }
 
     if (returnBaseMessages) {
@@ -242,8 +259,6 @@ CREATE TABLE IF NOT EXISTS ${this.tableName} (
         type: m.role
       })
     }
-
-    console.log('PostgresSaver get chat messages:', performance.now() - startTime)
 
     return returnIMessages
   }

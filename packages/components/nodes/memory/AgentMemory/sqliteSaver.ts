@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS ${this.tableName} (
 
     if (this.numberOfMessages && this.numberOfMessages > 0) {
       // Get total count of messages
-      const totalCount = await repository.count(findOptions.where)
+      const totalCount = await repository.count(findOptions)
 
       // Calculate offset to get the most recent N messages
       findOptions.skip = Math.max(0, totalCount - this.numberOfMessages)
