@@ -165,7 +165,8 @@ class AgentMemory_Memory implements INode {
         threadId,
         appDataSource,
         databaseEntities,
-        chatflowid
+        chatflowid,
+        numberOfMessages: nodeData.inputs?.numberOfMessages
       }
       const recordManager = new PostgresSaver(args)
       return recordManager
