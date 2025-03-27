@@ -28,7 +28,11 @@ export const Input = ({ inputParam, value, nodes, edges, nodeId, onChange, disab
 
   if (value?.startsWith && nodeId?.startsWith('awsBedrockKBRetriever') && value?.startsWith('[{')) {
     const file = JSON.parse(value)
-    selectedFilesSet.add(file[0].key)
+    file.forEach((item) => {
+      if (item?.key) {
+        selectedFilesSet.add(item.key)
+      }
+    })
   }
 
   const handleCloseVariableDialog = () => {
