@@ -1,37 +1,37 @@
 import { flatten, uniq } from 'lodash'
 import { DataSource } from 'typeorm'
-import { RunnableSequence, RunnablePassthrough, RunnableConfig } from '@langchain/core/runnables'
-import { ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate, BaseMessagePromptTemplateLike } from '@langchain/core/prompts'
+import { RunnableConfig, RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables'
+import { BaseMessagePromptTemplateLike, ChatPromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts'
 import { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { AIMessage, AIMessageChunk, BaseMessage, HumanMessage, ToolMessage } from '@langchain/core/messages'
 import { formatToOpenAIToolMessages } from 'langchain/agents/format_scratchpad/openai_tools'
 import { type ToolsAgentStep } from 'langchain/agents/openai/output_parser'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import {
+  ICommonObject,
+  IDatabaseEntity,
+  IDocument,
   INode,
   INodeData,
-  INodeParams,
-  ISeqAgentsState,
-  ICommonObject,
-  MessageContentImageUrl,
   INodeOutputsValue,
+  INodeParams,
   ISeqAgentNode,
-  IDatabaseEntity,
+  ISeqAgentsState,
+  IStateWithMessages,
   IUsedTool,
-  IDocument,
-  IStateWithMessages
+  MessageContentImageUrl
 } from '../../../src/Interface'
-import { ToolCallingAgentOutputParser, AgentExecutor, SOURCE_DOCUMENTS_PREFIX, ARTIFACTS_PREFIX } from '../../../src/agents'
+import { AgentExecutor, ARTIFACTS_PREFIX, SOURCE_DOCUMENTS_PREFIX, ToolCallingAgentOutputParser } from '../../../src/agents'
 import { getInputVariables, getVars, handleEscapeCharacters, prepareSandboxVars, removeInvalidImageMarkdown } from '../../../src/utils'
 import {
+  checkMessageHistory,
   customGet,
   getVM,
-  processImageMessage,
-  transformObjectPropertyToFunction,
-  restructureMessages,
   MessagesState,
+  processImageMessage,
+  restructureMessages,
   RunnableCallable,
-  checkMessageHistory
+  transformObjectPropertyToFunction
 } from '../commonUtils'
 import { END, StateGraph } from '@langchain/langgraph'
 import { StructuredTool } from '@langchain/core/tools'
@@ -400,6 +400,14 @@ class Agent_SeqAgents implements INode {
         type: 'number',
         optional: true,
         additionalParams: true
+      },
+      {
+        label: 'Max Histories',
+        name: 'maxHistories',
+        type: 'number',
+        optional: true,
+        additionalParams: true,
+        default: 20
       }
     ]
   }
@@ -730,7 +738,7 @@ async function agentNode(
     }
 
     // @ts-ignore
-    state.messages = restructureMessages(llm, state)
+    state.messages = restructureMessages(llm, state, +nodeData.inputs?.maxHistories)
 
     // Check if model supports vision and add images to messages if it does
     if (llmSupportsVision(llm) && options.uploads && options.uploads.length && options?.uploads[0]?.mime.startsWith('image/')) {

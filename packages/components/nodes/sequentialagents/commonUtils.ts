@@ -208,7 +208,7 @@ export const convertStructuredSchemaToZod = (schema: string | object): ICommonOb
   }
 }
 
-export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) => {
+export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState, maxHistories?: number) => {
   const isAI = (message?: BaseMessage) => message && ['AIMessageChunk'].includes(message.constructor.name)
   const isHuman = (message?: BaseMessage) => message && ['HumanMessage', 'HumanMessageChunk'].includes(message.constructor.name)
 
@@ -295,6 +295,23 @@ export const restructureMessages = (llm: BaseChatModel, state: ISeqAgentsState) 
   //   'After',
   //   messages.map((msg) => `${msg.constructor.name}: ${msg.content}`)
   // )
+
+  if (typeof maxHistories === 'number' && maxHistories > 0) {
+    const messagesChunks: any[] = []
+
+    if (maxHistories % 2 !== 0) {
+      maxHistories += 1
+    }
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messagesChunks.length >= maxHistories) {
+        break
+      }
+      messagesChunks.unshift(messages[i])
+    }
+
+    return messagesChunks
+  }
 
   return messages
 }
