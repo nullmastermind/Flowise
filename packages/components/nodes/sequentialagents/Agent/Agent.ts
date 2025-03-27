@@ -402,7 +402,7 @@ class Agent_SeqAgents implements INode {
         additionalParams: true
       },
       {
-        label: 'Max Histories',
+        label: 'Context',
         name: 'maxHistories',
         type: 'number',
         optional: true,
