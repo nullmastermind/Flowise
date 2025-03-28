@@ -749,7 +749,7 @@ async function agentNode(
         if (upload.mime.startsWith('image/')) {
           const contents = await getFileFromStorage(upload.name, options.chatflowid, options.chatId)
           // Convert image to base64
-          const bf = 'data:' + upload.mime + ';base64,' + contents.toString('base64')
+          const bf = 'data:' + upload.mime + ';base64,' + contents.toString('base64') + '\n'
           imageContents.push({
             type: 'image_url',
             image_url: {
@@ -761,20 +761,26 @@ async function agentNode(
       }
 
       if (imageContents.length > 0) {
-        // Create a message with all images
-        const imageMessage = new HumanMessage({
-          content: imageContents
-        })
-
         // Add the image message to state
         const messages = state.messages as unknown as BaseMessage[]
 
-        // Insert the image message before the last message
-        if (messages.length > 0) {
-          messages.splice(messages.length - 1, 0, imageMessage)
-        } else {
-          messages.push(imageMessage)
-        }
+        let lastMessageIndex = messages.length - 1
+        const lastMessage = messages[lastMessageIndex]
+
+        // Create updated message with images + original content
+        const updatedMessage = new HumanMessage({
+          content: [
+            {
+              type: 'text',
+              text: lastMessage.content
+            },
+            ...imageContents
+          ],
+          additional_kwargs: lastMessage.additional_kwargs,
+          response_metadata: lastMessage.response_metadata
+        })
+
+        messages[lastMessageIndex] = updatedMessage
 
         state.messages = messages
       }

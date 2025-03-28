@@ -109,6 +109,7 @@ const ChatbotFull = () => {
                 apiHost={baseURL}
                 chatflowConfig={chatbotOverrideConfig}
                 theme={{ chatWindow: chatbotTheme }}
+                isUseFAQ={chatflow?.isUseFAQ}
               />
             )}
           </>
