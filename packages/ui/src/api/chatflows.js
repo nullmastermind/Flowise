@@ -40,6 +40,8 @@ const getIsChatflowStreaming = (id) => client.get(`/chatflows-streaming/${id}`)
 
 const getAllowChatflowUploads = (id) => client.get(`/chatflows-uploads/${id}`)
 
+const getPromptSystemList = () => client.get('/chatflows/prompts/system')
+
 export default {
   getAllChatflows,
   getAllAgentflows,
@@ -58,5 +60,6 @@ export default {
   getAllChatflowsOfAdminGroup,
   getAllAgentOfAdminGroup,
   getPersonalChatflows,
-  getPersonalAgentflows
+  getPersonalAgentflows,
+  getPromptSystemList
 }

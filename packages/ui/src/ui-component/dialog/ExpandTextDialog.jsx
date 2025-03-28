@@ -21,6 +21,7 @@ import nodesApi from '@/api/nodes'
 import useApi from '@/hooks/useApi'
 
 import './ExpandTextDialog.css'
+import PromptBuilderDialog from './PromptBuilderDialog'
 
 const ExpandTextDialog = ({ show, dialogProps, onCancel, onInputHintDialogClicked, onConfirm }) => {
   const portalElement = document.getElementById('portal')
@@ -34,6 +35,7 @@ const ExpandTextDialog = ({ show, dialogProps, onCancel, onInputHintDialogClicke
   const [languageType, setLanguageType] = useState('json')
   const [loading, setLoading] = useState(false)
   const [codeExecutedResult, setCodeExecutedResult] = useState('')
+  const [openPopupPrompt, setOpenPopupPrompt] = useState(false)
 
   const executeCustomFunctionNodeApi = useApi(nodesApi.executeCustomFunctionNode)
 
@@ -110,6 +112,14 @@ const ExpandTextDialog = ({ show, dialogProps, onCancel, onInputHintDialogClicke
                   >
                     {inputParam.hint.label}
                   </Button>
+                )}
+                {inputParam.name === 'systemMessagePrompt' && (
+                  <>
+                    <PromptBuilderDialog show={openPopupPrompt} setOpenPopupPrompt={setOpenPopupPrompt} setInputValue={setInputValue} />
+                    <Button sx={{ p: 0, px: 2 }} color='secondary' variant='text' onClick={() => setOpenPopupPrompt(!openPopupPrompt)}>
+                      Management System Prompt
+                    </Button>
+                  </>
                 )}
               </div>
               <PerfectScrollbar

@@ -530,6 +530,44 @@ const _checkAndUpdateDocumentStoreUsage = async (chatflow: ChatFlow) => {
   }
 }
 
+const getPromptSystemList = async (): Promise<any[]> => {
+  try {
+    const appServer = getRunningExpressApp()
+    const chatflows = await appServer.AppDataSource.getRepository(ChatFlow).find({ where: { type: 'MULTIAGENT' } })
+
+    console.log('🚀 ~ index.ts:538 ~ getPromptSystemList ~ chatflows:', chatflows.length)
+    const promptSystemList = []
+
+    for (const chatflow of chatflows) {
+      try {
+        const flowData = JSON.parse(chatflow.flowData)
+        if (!flowData.nodes) continue
+
+        for (const node of flowData.nodes) {
+          // Look for nodes with systemMessage in inputs
+          if (node.data?.inputs?.systemMessagePrompt) {
+            promptSystemList.push({
+              chatflowName: chatflow.name,
+              promptSystem: node.data?.inputs?.systemMessagePrompt
+            })
+            break
+          }
+        }
+      } catch (error) {
+        logger.error(`Error parsing flowData for chatflow ${chatflow.id}: ${getErrorMessage(error)}`)
+      }
+    }
+
+    console.log('🚀 ~ index.ts:559 ~ getPromptSystemList ~ promptSystemList:', promptSystemList.length)
+    return promptSystemList
+  } catch (error) {
+    throw new InternalFlowiseError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      `Error: chatflowsService.getPromptSystemList - ${getErrorMessage(error)}`
+    )
+  }
+}
+
 export default {
   checkIfChatflowIsValidForStreaming,
   checkIfChatflowIsValidForUploads,
@@ -545,5 +583,6 @@ export default {
   getSinglePublicChatbotConfig,
   getControlChatflowsOfAdmin,
   getControlChatflowsOfAdminGroup,
-  getPersonalChatflows
+  getPersonalChatflows,
+  getPromptSystemList
 }

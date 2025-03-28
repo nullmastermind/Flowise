@@ -224,6 +224,15 @@ const getPersonalChatflows = async (req: any, res: Response, next: NextFunction)
   }
 }
 
+const getPromptSystemList = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const apiResponse = await chatflowsService.getPromptSystemList()
+    return res.json(apiResponse)
+  } catch (error) {
+    next(error)
+  }
+}
+
 export default {
   checkIfChatflowIsValidForStreaming,
   checkIfChatflowIsValidForUploads,
@@ -239,5 +248,6 @@ export default {
   getSinglePublicChatbotConfig,
   getControlChatflowsOfAdmin,
   getControlChatflowsOfAdminGroup,
-  getPersonalChatflows
+  getPersonalChatflows,
+  getPromptSystemList
 }

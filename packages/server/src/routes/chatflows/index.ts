@@ -14,7 +14,7 @@ router.get('/user/:id', chatflowsController.getPersonalChatflows)
 router.get('/public/all', chatflowsController.getAllPublicChatflows)
 router.get('/admin/all', chatflowsController.getControlChatflowsOfAdmin)
 router.get('/admin/group', chatflowsController.getControlChatflowsOfAdminGroup)
-
+router.get('/prompts/system', chatflowsController.getPromptSystemList)
 // UPDATE
 router.put(['/', '/:id'], chatflowsController.updateChatflow)
 
