@@ -32,7 +32,7 @@ const registerUser = async (body: Partial<IUser>) => {
 
     Object.assign(newUser, { password: hashedPassword })
     Object.assign(newUser, { id: userId })
-    Object.assign(newUser, { role: UserRole.USER })
+    Object.assign(newUser, { role: body.groupname === 'Master_admin' ? UserRole.MASTER_ADMIN : UserRole.USER })
 
     const user = appServer.AppDataSource.getRepository(User).create({
       ...newUser,
